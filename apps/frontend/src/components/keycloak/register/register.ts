@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -11,6 +11,7 @@ import { RouterModule } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { KeycloakService } from '../../../app/keycloak/keycloak.service';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -31,6 +32,8 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   styleUrl: './register.scss',
 })
 export class RegisterComponent {
+  private readonly keycloak = inject(KeycloakService);
+
   form = new FormGroup(
     {
       name: new FormControl('', [Validators.required]),
@@ -76,6 +79,6 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-    // TODO: Keycloak register
+    void this.keycloak.register();
   }
 }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { CredentialsModule } from './credentials/credentials.module';
 import { MarketplaceCredentialsModule } from './marketplace-credentials/marketplace-credentials.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -14,6 +15,6 @@ import { PrismaModule } from './prisma/prisma.module';
     MarketplaceCredentialsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtAuthGuard],
 })
 export class AppModule {}

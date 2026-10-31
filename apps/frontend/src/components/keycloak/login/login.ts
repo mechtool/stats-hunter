@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { KeycloakService } from '../../../app/keycloak/keycloak.service';
 
 @Component({
   selector: 'sh-login',
@@ -23,6 +24,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
   styleUrl: './login.scss',
 })
 export class LoginComponent {
+  private readonly keycloak = inject(KeycloakService);
+
   form = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required]),
@@ -44,6 +47,6 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
-    // TODO: Keycloak login (OIDC + PKCE)
+    void this.keycloak.login();
   }
 }
