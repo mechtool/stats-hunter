@@ -90,6 +90,6 @@
 - `npm approve-scripts` выполнен, нативные модули пересобраны (esbuild, lmdb, msgpackr-extract, @parcel/watcher, unrs-resolver, nx).
 - `npm audit`: ~58 уязвимостей (в основном moderate, 2 high) в dev-зависимостях — разобрать и поднять версии.
 - Анимации подключены синхронно (`provideAnimations()`) — надёжнее для SSG; `provideAnimationsAsync()` дал бы меньший бандл, но риск при предрендеринге.
-- NG-ZORRO: tree-shaking сделан — базовый `style/index.min.css` (18 KB) + стили компонентов из импортов (button/card/input). Итог initial: ~576 KB raw / ~149 KB gzip.
+- NG-ZORRO подключён полным CSS (`ng-zorro-antd.min.css`, ~558 KB). Попытка tree-shaking (базовый `style/index.min.css` + стили из импортов) сломала разметку формы входа — откачено; вернуться позже (нужны CSS-переменные темы).
 - Git-репозиторий инициализирован: ветка `master`, первый коммит `0c23722` (55 файлов).
 - Ozon API-ключ получен от пользователя — хранится в `.env` (в git не коммитим).
