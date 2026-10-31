@@ -83,7 +83,8 @@
 - Фаза 1 (бэкенд-ядро, стартовано): доменные модели, интерфейс `MarketplaceAdapter`, `CredentialsService` (AES-256-GCM) + 5 юнит-тестов. Проверено: lint/test/build бэка.
 - Инфраструктура: Docker Compose (Postgres + Redis + Keycloak), Postgres/Redis подняты и healthy. Prisma 7: схема (`users`, `marketplace_credentials`), клиент, `PrismaService` (pg-адаптер), `db push` применён, бэкенд перезапущен.
 - Хранилище ключей: `MarketplaceCredentialsService` — шифрование AES-256-GCM → `marketplace_credentials.encryptedPayload` (JSON секретов), расшифровка при чтении + 3 теста.
-- Следующий шаг: Ozon-адаптер (ключи готовы в `.env`) или макеты Pixso (Keycloak).
+- Ozon-адаптер: `OzonAdapter.getProducts` (list + info) реализован и live-проверен (`/v3/product/list` → 200). Первая площадка фактически — Ozon (ключи предоставлены).
+- Следующий шаг: расширить Ozon (заказы/аналитика/стоки) или макеты Pixso (Keycloak).
 
 ## 10. Замечания Фазы 0 (к исправлению позже)
 - `npm approve-scripts` выполнен, нативные модули пересобраны (esbuild, lmdb, msgpackr-extract, @parcel/watcher, unrs-resolver, nx).
