@@ -1,5 +1,5 @@
 import { Route } from '@angular/router';
-import { LoginComponent } from './login/login';
+import { LoginComponent } from '../components/keycloak/login/login';
 
 export const appRoutes: Route[] = [
   { path: 'login', component: LoginComponent },
