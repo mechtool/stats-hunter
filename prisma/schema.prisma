@@ -22,7 +22,7 @@ model MarketplaceCredential {
   userId       String   @db.Uuid
   marketplace  String // value of MarketplaceType enum
   name         String
-  encryptedKey String // base64(iv || authTag || ciphertext), AES-256-GCM
+  encryptedPayload String // base64(iv || authTag || ciphertext) of JSON secrets, AES-256-GCM
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

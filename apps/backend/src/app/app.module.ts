@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CredentialsModule } from './credentials/credentials.module';
+import { MarketplaceCredentialsModule } from './marketplace-credentials/marketplace-credentials.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -10,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module';
     ConfigModule.forRoot({ isGlobal: true }),
     CredentialsModule,
     PrismaModule,
+    MarketplaceCredentialsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -82,7 +82,8 @@
 - SSG: предрендеринг маршрутов на сборке (`prerender: true`, статический вывод `browser/`, без runtime SSR). `/login` предрендерен.
 - Фаза 1 (бэкенд-ядро, стартовано): доменные модели, интерфейс `MarketplaceAdapter`, `CredentialsService` (AES-256-GCM) + 5 юнит-тестов. Проверено: lint/test/build бэка.
 - Инфраструктура: Docker Compose (Postgres + Redis + Keycloak), Postgres/Redis подняты и healthy. Prisma 7: схема (`users`, `marketplace_credentials`), клиент, `PrismaService` (pg-адаптер), `db push` применён, бэкенд перезапущен.
-- Следующий шаг: макеты Pixso (формы входа/регистрации) + API-ключ WB (для адаптера WB).
+- Хранилище ключей: `MarketplaceCredentialsService` — шифрование AES-256-GCM → `marketplace_credentials.encryptedPayload` (JSON секретов), расшифровка при чтении + 3 теста.
+- Следующий шаг: Ozon-адаптер (ключи готовы в `.env`) или макеты Pixso (Keycloak).
 
 ## 10. Замечания Фазы 0 (к исправлению позже)
 - `npm approve-scripts` выполнен, нативные модули пересобраны (esbuild, lmdb, msgpackr-extract, @parcel/watcher, unrs-resolver, nx).
