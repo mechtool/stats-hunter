@@ -81,6 +81,7 @@
 - PWA: service worker (`ngsw-worker.js` + `ngsw.json`), `manifest.webmanifest`, иконки 192/512 — генерируются при production-сборке.
 - SSG: предрендеринг маршрутов на сборке (`prerender: true`, статический вывод `browser/`, без runtime SSR). `/login` предрендерен.
 - Фаза 1 (бэкенд-ядро, стартовано): доменные модели, интерфейс `MarketplaceAdapter`, `CredentialsService` (AES-256-GCM) + 5 юнит-тестов. Проверено: lint/test/build бэка.
+- Инфраструктура: Docker Compose (Postgres + Redis + Keycloak), Postgres/Redis подняты и healthy. Prisma 7: схема (`users`, `marketplace_credentials`), клиент, `PrismaService` (pg-адаптер), `db push` применён, бэкенд перезапущен.
 - Следующий шаг: макеты Pixso (формы входа/регистрации) + API-ключ WB (для адаптера WB).
 
 ## 10. Замечания Фазы 0 (к исправлению позже)
@@ -89,3 +90,4 @@
 - Анимации подключены синхронно (`provideAnimations()`) — надёжнее для SSG; `provideAnimationsAsync()` дал бы меньший бандл, но риск при предрендеринге.
 - NG-ZORRO подключён полным CSS (`ng-zorro-antd.min.css`, ~558 KB raw); бюджеты подняты (warning 1.5 MB / error 2.5 MB). Позже заменить на tree-shaken / по-компонентные стили.
 - Git-репозиторий инициализирован: ветка `master`, первый коммит `0c23722` (55 файлов).
+- Ozon API-ключ получен от пользователя — хранится в `.env` (в git не коммитим).
