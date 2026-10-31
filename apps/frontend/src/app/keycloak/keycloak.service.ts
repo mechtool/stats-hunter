@@ -1,9 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-const KC_URL = 'http://localhost:8080/realms/stats-hunter';
-const CLIENT_ID = 'stats-hunter-frontend';
 const TOKEN_KEY = 'stats-hunter.access_token';
 const EMAIL_KEY = 'stats-hunter.email';
 
@@ -29,13 +28,14 @@ export class KeycloakService {
   async login(email: string, password: string): Promise<void> {
     const body = new URLSearchParams({
       grant_type: 'password',
-      client_id: CLIENT_ID,
+      client_id: environment.keycloakClientId,
       username: email,
       password,
       scope: 'openid',
     });
 
-    const res = await fetch(`${KC_URL}/protocol/openid-connect/token`, {
+    const res = await fetch(
+      `${environment.keycloakUrl}/protocol/openid-connect/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body,

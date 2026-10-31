@@ -23,7 +23,7 @@ export class AuthController {
   constructor(config: ConfigService) {
     this.baseUrl = config.get('KEYCLOAK_URL') ?? 'http://localhost:8080';
     this.realm = config.get('KEYCLOAK_REALM') ?? 'stats-hunter';
-    this.adminUser = config.get('KEYCLOAK_ADMIN_USER') ?? 'admin';
+    this.adminUser = config.get('KEYCLOAK_ADMIN') ?? 'admin';
     this.adminPassword = config.get('KEYCLOAK_ADMIN_PASSWORD') ?? 'admin';
   }
 
