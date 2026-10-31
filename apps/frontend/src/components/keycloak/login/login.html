@@ -20,22 +20,26 @@
         }
       </div>
 
-      <div class="form-field">
+      <div class="form-field password-field">
         <input
           nz-input
-          type="password"
+          [type]="showPassword ? 'text' : 'password'"
           formControlName="password"
           placeholder="Пароль"
           aria-label="Пароль"
         />
+        <button
+          type="button"
+          class="password-toggle"
+          [attr.aria-label]="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+          (click)="showPassword = !showPassword"
+        >
+          <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'"></span>
+        </button>
         @if (passwordError()) {
           <div class="form-error">{{ passwordError() }}</div>
         }
       </div>
-
-      @if (loginError) {
-        <div class="form-error">{{ loginError }}</div>
-      }
 
       <button
         nz-button

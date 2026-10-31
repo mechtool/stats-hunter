@@ -1,0 +1,24 @@
+<div class="home-wrapper">
+  <nz-card class="home-card">
+    <div class="home-brand">
+      <div class="home-logo">SH</div>
+      <h1>Stats Hunter</h1>
+      <p>Аналитика и статистика маркетплейсов</p>
+    </div>
+
+    <p class="home-welcome">
+      Вы вошли как <strong>{{ email }}</strong>
+    </p>
+
+    <button
+      nz-button
+      nzType="primary"
+      nzBlock
+      nzSize="large"
+      type="button"
+      (click)="logout()"
+    >
+      Выйти
+    </button>
+  </nz-card>
+</div>

@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 const KC_URL = 'http://localhost:8080/realms/stats-hunter';
 const CLIENT_ID = 'stats-hunter-frontend';
 const TOKEN_KEY = 'stats-hunter.access_token';
+const EMAIL_KEY = 'stats-hunter.email';
 
 /**
  * Custom login/registration against Keycloak, without redirecting to the
@@ -16,6 +17,11 @@ export class KeycloakService {
   private accessToken: string | null =
     typeof localStorage !== 'undefined'
       ? localStorage.getItem(TOKEN_KEY)
+      : null;
+
+  private email: string | null =
+    typeof localStorage !== 'undefined'
+      ? localStorage.getItem(EMAIL_KEY)
       : null;
 
   private readonly http = inject(HttpClient);
@@ -41,7 +47,9 @@ export class KeycloakService {
 
     const data = (await res.json()) as { access_token: string };
     this.accessToken = data.access_token;
+    this.email = email;
     localStorage.setItem(TOKEN_KEY, data.access_token);
+    localStorage.setItem(EMAIL_KEY, email);
   }
 
   async register(name: string, email: string, password: string): Promise<void> {
@@ -52,7 +60,9 @@ export class KeycloakService {
 
   logout(): void {
     this.accessToken = null;
+    this.email = null;
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(EMAIL_KEY);
   }
 
   isAuthenticated(): boolean {
@@ -61,5 +71,9 @@ export class KeycloakService {
 
   get token(): string | null {
     return this.accessToken;
+  }
+
+  get userEmail(): string | null {
+    return this.email;
   }
 }

@@ -7,12 +7,14 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { KeycloakService } from '../../../app/keycloak/keycloak.service';
+import { NotificationService } from '../../../app/services/notification.service';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -27,6 +29,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
     ReactiveFormsModule,
     NzButtonModule,
     NzCardModule,
+    NzIconModule,
     NzInputModule,
   ],
   templateUrl: './register.html',
@@ -34,6 +37,8 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 })
 export class RegisterComponent {
   private readonly keycloak = inject(KeycloakService);
+  private readonly router = inject(Router);
+  private readonly notification = inject(NotificationService);
 
   form = new FormGroup(
     {
@@ -47,6 +52,9 @@ export class RegisterComponent {
     },
     { validators: passwordsMatch },
   );
+
+  showPassword = false;
+  showConfirmPassword = false;
 
   nameError(): string {
     const control = this.form.controls.name;
@@ -79,11 +87,8 @@ export class RegisterComponent {
     return '';
   }
 
-  registerError = '';
-
   async onSubmit(): Promise<void> {
     if (this.form.invalid) return;
-    this.registerError = '';
     try {
       await this.keycloak.register(
         this.form.value.name ?? '',
@@ -94,11 +99,14 @@ export class RegisterComponent {
         this.form.value.email ?? '',
         this.form.value.password ?? '',
       );
+      this.notification.success('Регистрация завершена', 'Вы вошли в аккаунт.');
+      this.router.navigate(['/home']);
     } catch (error) {
-      this.registerError =
+      const message =
         error instanceof HttpErrorResponse
           ? (error.error?.message ?? 'Ошибка регистрации')
           : 'Ошибка регистрации';
+      this.notification.error('Ошибка регистрации', message);
     }
   }
 }

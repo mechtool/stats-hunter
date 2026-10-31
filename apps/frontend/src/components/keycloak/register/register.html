@@ -33,35 +33,47 @@
         }
       </div>
 
-      <div class="form-field">
+      <div class="form-field password-field">
         <input
           nz-input
-          type="password"
+          [type]="showPassword ? 'text' : 'password'"
           formControlName="password"
           placeholder="Пароль"
           aria-label="Пароль"
         />
+        <button
+          type="button"
+          class="password-toggle"
+          [attr.aria-label]="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+          (click)="showPassword = !showPassword"
+        >
+          <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'"></span>
+        </button>
         @if (passwordError()) {
           <div class="form-error">{{ passwordError() }}</div>
         }
       </div>
 
-      <div class="form-field">
+      <div class="form-field password-field">
         <input
           nz-input
-          type="password"
+          [type]="showConfirmPassword ? 'text' : 'password'"
           formControlName="confirmPassword"
           placeholder="Повторите пароль"
           aria-label="Повторите пароль"
         />
+        <button
+          type="button"
+          class="password-toggle"
+          [attr.aria-label]="showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'"
+          (click)="showConfirmPassword = !showConfirmPassword"
+        >
+          <span nz-icon [nzType]="showConfirmPassword ? 'eye-invisible' : 'eye'"></span>
+        </button>
         @if (confirmPasswordError()) {
           <div class="form-error">{{ confirmPasswordError() }}</div>
         }
       </div>
-
-      @if (registerError) {
-        <div class="form-error">{{ registerError }}</div>
-      }
 
       <button
         nz-button
