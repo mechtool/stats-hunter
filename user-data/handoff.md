@@ -1,55 +1,62 @@
 # stats-hunter — Handoff (state snapshot)
 
-> Назначение: быстро восстановить контекст в новой сессии. Читай вместе с `user-data/plan.md` и git-историей. Живое состояние файлов/git — авторитетно.
+> Назначение: быстро восстановить контекст в новой сессии. Читай вместе с `user-data/plan.md` и `user-data/security-debt.md`. Живое состояние файлов/git — авторитетно.
+> Последнее обновление: 2026-10-31.
 
 ## Где мы (кратко)
-Фаза 0 (каркас) завершена. Идёт работа над auth (вход/регистрация через Keycloak) и ранним бэкенд-слоем (credentials, marketplaces/Ozon, Prisma).
+Фаза 0 (каркас) завершена. Auth (Keycloak) + ранний бэкенд-слой (credentials, marketplaces/Ozon, Prisma) реализованы. **Проект развёрнут на ВМ Яндекс Облака и проверен end-to-end.**
 
-Стек: Nx monorepo → Angular + NG-ZORRO (светлая тема, полный CSS после revert tree-shaking), NestJS, Prisma + Postgres, Redis, Keycloak 26 (OIDC/JWT). PWA + SSG-прирендеринг (SSR выключен). Деплой: локально + Яндекс Облако.
+Стек: Nx monorepo → Angular + NG-ZORRO (светлая тема), NestJS, Prisma + Postgres, Redis, Keycloak 26 (OIDC/JWT). PWA + SSG-пререндеринг (SSR выключен). Деплой: ВМ Yandex Cloud (локальный docker-compose.prod).
 
-## Auth (текущее)
-- Realm Keycloak: `stats-hunter`; клиент `stats-hunter-frontend` (public, `directAccessGrantsEnabled`, `standardFlowEnabled`); redirectURIs `http://localhost:4200/*`.
-- Кастомные формы **без редиректа** на hosted-страницы Keycloak:
-  - Вход = password grant (`keycloak.service.ts`, токен в `localStorage`).
-  - Регистрация = наш бэк `POST /api/auth/register` → Keycloak Admin API создаёт пользователя (`username=email`).
-- Тестовый юзер: **`test@example.com` / `Test1234`** (вход проверен — токен выдаётся).
-- Починен «Account is not fully set up»: в Keycloak User Profile поле `lastName` сделано необязательным (форма собирает только «Имя» → firstName). Без этого любой новый юзер не мог войти.
-- Realm экспортирован в `infra/keycloak/realm-export.json` (включает клиент + необязательный lastName).
+## Доступ (тест, публичный IP)
+- **Фронт:** http://158.160.204.124:8081
+- **Keycloak:** http://158.160.204.124:8080 (админка `admin`/`admin`)
+- **API:** http://158.160.204.124:8081/api/health (или `:3000/api`)
+- **Тест-юзер:** `final-test@example.com` / `Final1234` (создан при проверке; `test@example.com` в свежий realm не экспортирован)
+- **SSH:** `ssh -i C:\Users\Saturn\.ssh\keys\yc-vm-key mit-2@158.160.204.124`; репо на ВМ `~/stats-hunter`; бэкенд = `nohup node dist/apps/backend/main.js` (без автоперезапуска).
 
-## Инфраструктура (docker-compose.yml)
-- postgres:16-alpine → `localhost:5433` (хост-порт, из-за wslrelay), user/db `stats_hunter` / пароль `stats_hunter_dev`.
-- redis:7-alpine → `localhost:6379`.
-- keycloak:26.0 → `localhost:8080`, bootstrap-admin `admin`/`admin` (realm master).
-- `docker compose up -d` поднимает всё.
+## Что сделано в этой сессии
+1. Auth UX: AuthGuard + защищённый `/home`, редирект после входа/регистрации, logout, показ email (`keycloak.service.ts`, `auth.guard.ts`, `components/home/`).
+2. `NotificationService` (ng-zorro) в `app/services/` — success/error/warning/info, используется в login/register.
+3. Переключатель видимости пароля (глаз/перечёркнутый глаз) во всех полях пароля.
+4. Keycloak-конфиг вынесен из хардкода: фронт → `environments/environment.ts|prod.ts` (+ `fileReplacements`); бэк → `KEYCLOAK_*` в `.env.example`.
+5. Деплой на ВМ: `docker-compose.prod.yml` (postgres/redis/keycloak/nginx-фронт + импорт realm + лимит памяти Keycloak), `infra/nginx/stats-hunter.conf`, `infra/postgres/init-keycloak-db.sql`, `.env.prod.example`.
+6. Освобождено 4.1 GB на ВМ (`docker builder prune`).
 
-## Бэкенд (apps/backend, NestJS, :3000)
-- Модули: `auth` (register + `jwt-auth.guard` RS256/JWKS), `credentials` (AES-256-GCM), `marketplace-credentials`, `marketplaces` (интерфейс адаптера + Ozon-адаптер, live-verified), `prisma`.
-- Prisma: `users` (keycloakSub unique), `marketplace_credentials` (userId+marketplace unique, encryptedPayload).
-- `.env` (gitignored): `DATABASE_URL`, `OZON_CLIENT_ID`/`OZON_API_KEY` (даны пользователем — НЕ коммитить), `STATS_HUNTER_ENCRYPTION_KEY` (dev-заглушка).
-- Запуск после сборки: `node dist/apps/backend/main.js`.
+## Деплой-флоу (повторить на ВМ)
+```sh
+ssh -i C:\Users\Saturn\.ssh\keys\yc-vm-key mit-2@158.160.204.124
+cd ~/stats-hunter && git pull
+npm ci
+export PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma
+npx prisma generate && npx prisma db push
+npx nx build backend frontend
+docker compose -f docker-compose.prod.yml up -d
+node dist/apps/backend/main.js   # или nohup ... &
+```
+Верификация: `tools/verify-deploy.sh` (закинуть на ВМ и `bash`).
 
-## Фронтенд (apps/frontend, Angular, NG-ZORRO)
-- PWA: `public/manifest.webmanifest`, `ngsw-config.json`. SSG-прирендеринг (no SSR).
-- Компоненты входа/регистрации: `apps/frontend/src/components/keycloak/`.
-- Сервис: `apps/frontend/src/app/keycloak/keycloak.service.ts` (password grant + register через бэк).
-- Статик-сервер для пререндера: `node tools/serve.mjs` → `:4200`.
+## Ключевые нюансы (НЕ переоткрывать)
+- **Keycloak 26:** в `start` требует HTTPS key material → используем `start-dev`. Для HTTP по внешнему IP: realm `sslRequired=none` + `--hostname=http://IP:8080`. Опции `KC_HOSTNAME_URL` в KC26 **нет** (есть `--hostname <host|URL>`).
+- **Prisma-engines** не качаются с `binaries.prisma.sh` с ВМ → зеркало `PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma`.
+- **npm на ВМ = 11.16** (npm 10 падает `EUSAGE`: lockfile не в sync).
+- **Keycloak и app — разные БД** (`keycloak` vs `stats_hunter`), иначе `prisma db push` конфликтует с таблицами Keycloak.
 
-## Проверено
-- `npx nx run-many -t lint test build` → 6/6 зелёные (после последних изменений).
-- `/api/health` → 200; `/api/profile` без токена → 401.
-- Вход `test@example.com`/`Test1234` → токен OK.
-- Ozon `/v3/product/list` (visibility=ALL) → 200 (ранее live-verified).
+## Инфраструктура (docker-compose.prod.yml, сеть `stats-hunter`)
+- postgres:16-alpine → `:5433` (хост), БД `stats_hunter` (app) + `keycloak`.
+- redis:7-alpine → `:6379`.
+- keycloak:26.0 → `:8080`, `start-dev --import-realm --hostname=http://158.160.204.124:8080`, `JAVA_OPTS_APPEND=-Xms256m -Xmx768m`, realm из `infra/keycloak/realm-export.json`.
+- frontend: nginx:alpine → `:8081`, монтирует `dist/apps/frontend/browser` + `infra/nginx/stats-hunter.conf`, `/api` → `host.docker.internal:3000`.
+- Бэкенд — отдельный Node-процесс на хосте (`:3000`), читает `~/stats-hunter/.env`.
 
-## Дальнейшие шаги (кандидаты)
-1. Авто-импорт realm в `docker-compose` (`--import-realm` + mount `infra/keycloak/realm-export.json`). — был в работе.
-2. Frontend AuthGuard для защищённых маршрутов, редирект после входа, logout, показ профиля.
-3. Вынести Keycloak-конфиг (`KC_URL`, `CLIENT_ID`, issuer) из хардкода в env (нужно до деплоя).
-4. WB API-ключ (ещё не создан).
-5. Деплой в Яндекс Облако.
-6. Модель тарифов/подписки SaaS (не обсуждалась).
-
-## Команды
-- Инфра: `docker compose up -d`; статус `docker compose ps`.
+## Команды (локально)
 - Проверка: `npx nx run-many -t lint test build`.
 - Бэк после сборки: `node dist/apps/backend/main.js`.
-- Фронт (статика/пререндер): `node tools/serve.mjs`.
+- Фронт dev: `npx nx serve frontend` (прокси `/api` → `:3000`).
+
+## Дальнейшие шаги (кандидаты, по приоритету)
+1. **Домен + HTTPS:** купить домен → A-запись на `158.160.204.124` → nginx vhost + Let's Encrypt → заменить IP на домен в `environment.prod.ts`/`realm-export.json`/`docker-compose.prod.yml` → Keycloak `start` + `sslRequired=external`.
+2. Продолжить бэкенд: расширить Ozon-адаптер (заказы/аналитика/стоки) или WB API-ключ.
+3. Фаза 2 — фронт-дашборд (KPI, графики ngx-echarts, товары, управление ключами).
+4. Закрыть пункты `user-data/security-debt.md` (PKCE вместо password grant, CORS whitelist, Lockbox, rate limiting, сменить пароли).
+5. Деплой в Яндекс Облако «по-взрослому»: SourceCraft/CI, Container Registry, Managed Postgres/Redis.
