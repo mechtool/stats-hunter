@@ -41,8 +41,8 @@
 6. Далее: AliExpress CIS, Магнит Маркет (KazanExpress), Lamoda и др.
 
 ## 5. Фазы
-- **Фаза 0 — каркас (ТЕКУЩАЯ).** Nx + Angular + NestJS, NG-ZORRO (светлая тема), layout, страница входа (заглушка). Без Keycloak-форм — макеты из Pixso позже.
-- **Фаза 1 — бэкенд-ядро + Wildberries.** Хранилище ключей (AES-256-GCM), интерфейс `MarketplaceAdapter`, доменные модели, адаптер WB, REST-эндпоинты.
+- **Фаза 0 — каркас (завершена).** Nx + Angular + NestJS, NG-ZORRO (светлая тема), layout, страница входа (заглушка). Без Keycloak-форм — макеты из Pixso позже.
+- **Фаза 1 — бэкенд-ядро + Wildberries (ТЕКУЩАЯ).** Хранилище ключей (AES-256-GCM), интерфейс `MarketplaceAdapter`, доменные модели, адаптер WB, REST-эндпоинты.
 - **Фаза 2 — фронт WB.** Дашборд (KPI), графики, товары/поиск, заказы, управление ключами.
 - **Фаза 3 — Ozon + Яндекс Маркет.**
 - **Фаза 4 — СберМегаМаркет + Avito + воронка продаж + сводный дашборд.**
@@ -80,7 +80,8 @@
 - Java на хосте отсутствует → Keycloak через Docker.
 - PWA: service worker (`ngsw-worker.js` + `ngsw.json`), `manifest.webmanifest`, иконки 192/512 — генерируются при production-сборке.
 - SSG: предрендеринг маршрутов на сборке (`prerender: true`, статический вывод `browser/`, без runtime SSR). `/login` предрендерен.
-- Следующий шаг: макеты Pixso (формы входа/регистрации) + API-ключ WB → Фаза 1.
+- Фаза 1 (бэкенд-ядро, стартовано): доменные модели, интерфейс `MarketplaceAdapter`, `CredentialsService` (AES-256-GCM) + 5 юнит-тестов. Проверено: lint/test/build бэка.
+- Следующий шаг: макеты Pixso (формы входа/регистрации) + API-ключ WB (для адаптера WB).
 
 ## 10. Замечания Фазы 0 (к исправлению позже)
 - `npm approve-scripts` выполнен, нативные модули пересобраны (esbuild, lmdb, msgpackr-extract, @parcel/watcher, unrs-resolver, nx).
