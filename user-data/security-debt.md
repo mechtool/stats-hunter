@@ -38,3 +38,4 @@
 - **Prisma-engines на ВМ** качается только через зеркало `PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma` (binaries.prisma.sh заблокирован/медленный). Учесть в CI/deploy.
 - **На ВМ нужен npm 11.16** (package-lock несовместим с npm 10; `npm ci` падает с EUSAGE).
 - **Keycloak и приложение — разные БД** (`keycloak` vs `stats_hunter`), иначе `prisma db push` конфликтует с таблицами Keycloak.
+- **Security group ВМ открыта полностью** (default `default-sg-enph4ak7mlo5ttbehehi`, INGRESS/EGRESS ANY 0.0.0.0/0) — для prod закрыть до 80/443 (+22 SSH).

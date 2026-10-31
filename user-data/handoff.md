@@ -60,3 +60,10 @@ node dist/apps/backend/main.js   # или nohup ... &
 3. Фаза 2 — фронт-дашборд (KPI, графики ngx-echarts, товары, управление ключами).
 4. Закрыть пункты `user-data/security-debt.md` (PKCE вместо password grant, CORS whitelist, Lockbox, rate limiting, сменить пароли).
 5. Деплой в Яндекс Облако «по-взрослому»: SourceCraft/CI, Container Registry, Managed Postgres/Redis.
+
+## Ключи и Яндекс Облако
+- **SSH-ключи:** `C:\Users\Saturn\.ssh\keys\yc-vm-key` (+`.pub`); alias `yc-vm` в `C:\Users\Saturn\.ssh\config` → `ssh yc-vm` (user `mit-2`). Дубликаты ключа: `~/.ssh/keys/extracted/ssh-key-1784644848063`, `~/.ssh/ssh-key-1784644848063.*`.
+- **Yandex CLI:** `C:\Users\Saturn\yandex-cloud\bin\yc.exe`; конфиг+токен в `C:\Users\Saturn\.config\yandex-cloud\` (токен в `credentials\default` — секретный).
+- **Вход в облако/аккаунт:** почта аккаунта, cloud-id, folder-id — **записаны в локальном `.codewhale/handoff.md`** (не в этом публичном файле). Зона: `ru-central1-a`.
+- **ВМ:** `compute-vm-2-2-20-ssd` — 2 vCPU / 4 GB RAM / 20 GB SSD, Ubuntu 24.04, user `mit-2`, IP `158.160.204.124`. На ней же industrial-telemetry (`industrial-telemetry.ru`).
+- **Security group:** default `default-sg-enph4ak7mlo5ttbehehi` — сейчас **открыта полностью** (ANY 0.0.0.0/0). Для prod закрыть до 80/443 (+22).
