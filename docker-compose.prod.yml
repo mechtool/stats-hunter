@@ -12,6 +12,7 @@ services:
       - '${POSTGRES_PORT:-5433}:5432'
     volumes:
       - stats_hunter_pg:/var/lib/postgresql/data
+      - ./infra/postgres:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-stats_hunter} -d ${POSTGRES_DB:-stats_hunter}']
       interval: 5s
@@ -43,7 +44,7 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stats_hunter}
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_DB_USERNAME: ${POSTGRES_USER:-stats_hunter}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-stats_hunter_dev}
       JAVA_OPTS_APPEND: '-Xms256m -Xmx768m'
