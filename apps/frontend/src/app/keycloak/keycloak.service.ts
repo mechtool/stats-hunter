@@ -1,56 +1,65 @@
-import { Injectable } from '@angular/core';
-import Keycloak from 'keycloak-js';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+const KC_URL = 'http://localhost:8080/realms/stats-hunter';
+const CLIENT_ID = 'stats-hunter-frontend';
+const TOKEN_KEY = 'stats-hunter.access_token';
 
 /**
- * Thin wrapper over the official Keycloak JS adapter (OIDC Authorization Code + PKCE).
+ * Custom login/registration against Keycloak, without redirecting to the
+ * hosted Keycloak pages: login uses Resource Owner Password grant, registration
+ * goes through our backend (which uses the Keycloak Admin API).
  */
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
-  private readonly keycloak: Keycloak;
+  private accessToken: string | null =
+    typeof localStorage !== 'undefined'
+      ? localStorage.getItem(TOKEN_KEY)
+      : null;
 
-  constructor() {
-    this.keycloak = new Keycloak({
-      url: 'http://localhost:8080',
-      realm: 'stats-hunter',
-      clientId: 'stats-hunter-frontend',
+  private readonly http = inject(HttpClient);
+
+  async login(email: string, password: string): Promise<void> {
+    const body = new URLSearchParams({
+      grant_type: 'password',
+      client_id: CLIENT_ID,
+      username: email,
+      password,
+      scope: 'openid',
     });
+
+    const res = await fetch(`${KC_URL}/protocol/openid-connect/token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+
+    if (!res.ok) {
+      throw new Error('Неверный email или пароль');
+    }
+
+    const data = (await res.json()) as { access_token: string };
+    this.accessToken = data.access_token;
+    localStorage.setItem(TOKEN_KEY, data.access_token);
   }
 
-  init(): Promise<boolean> {
-    return this.keycloak.init({
-      onLoad: 'check-sso',
-      pkceMethod: 'S256',
-      silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`,
-    });
+  async register(name: string, email: string, password: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/register', { name, email, password }),
+    );
   }
 
-  login(): Promise<void> {
-    return this.keycloak.login({
-      redirectUri: `${window.location.origin}/login`,
-    });
-  }
-
-  register(): Promise<void> {
-    return this.keycloak.register({
-      redirectUri: `${window.location.origin}/login`,
-    });
-  }
-
-  logout(): Promise<void> {
-    return this.keycloak.logout({
-      redirectUri: `${window.location.origin}/login`,
-    });
+  logout(): void {
+    this.accessToken = null;
+    localStorage.removeItem(TOKEN_KEY);
   }
 
   isAuthenticated(): boolean {
-    return this.keycloak.authenticated ?? false;
+    return !!this.accessToken;
   }
 
-  get token(): string | undefined {
-    return this.keycloak.token;
-  }
-
-  get profile(): Record<string, string> {
-    return (this.keycloak.tokenParsed ?? {}) as Record<string, string>;
+  get token(): string | null {
+    return this.accessToken;
   }
 }

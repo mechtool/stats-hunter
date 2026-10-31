@@ -46,7 +46,18 @@ export class LoginComponent {
     return '';
   }
 
-  onSubmit(): void {
-    void this.keycloak.login();
+  loginError = '';
+
+  async onSubmit(): Promise<void> {
+    if (this.form.invalid) return;
+    this.loginError = '';
+    try {
+      await this.keycloak.login(
+        this.form.value.email ?? '',
+        this.form.value.password ?? '',
+      );
+    } catch {
+      this.loginError = 'Неверный email или пароль';
+    }
   }
 }

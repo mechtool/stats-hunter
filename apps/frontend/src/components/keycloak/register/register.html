@@ -59,6 +59,10 @@
         }
       </div>
 
+      @if (registerError) {
+        <div class="form-error">{{ registerError }}</div>
+      }
+
       <button
         nz-button
         nzType="primary"

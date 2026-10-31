@@ -8,6 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -78,7 +79,26 @@ export class RegisterComponent {
     return '';
   }
 
-  onSubmit(): void {
-    void this.keycloak.register();
+  registerError = '';
+
+  async onSubmit(): Promise<void> {
+    if (this.form.invalid) return;
+    this.registerError = '';
+    try {
+      await this.keycloak.register(
+        this.form.value.name ?? '',
+        this.form.value.email ?? '',
+        this.form.value.password ?? '',
+      );
+      await this.keycloak.login(
+        this.form.value.email ?? '',
+        this.form.value.password ?? '',
+      );
+    } catch (error) {
+      this.registerError =
+        error instanceof HttpErrorResponse
+          ? (error.error?.message ?? 'Ошибка регистрации')
+          : 'Ошибка регистрации';
+    }
   }
 }
