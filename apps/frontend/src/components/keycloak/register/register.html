@@ -1,0 +1,48 @@
+<div class="register-wrapper">
+  <nz-card class="register-card">
+    <div class="register-brand">
+      <div class="register-logo">SH</div>
+      <h1>Регистрация</h1>
+      <p>Создайте аккаунт Stats Hunter</p>
+    </div>
+
+    <div class="register-form">
+      <input
+        nz-input
+        type="text"
+        placeholder="Имя"
+        aria-label="Имя"
+        class="register-input"
+      />
+      <input
+        nz-input
+        type="email"
+        placeholder="Email"
+        aria-label="Email"
+        class="register-input"
+      />
+      <input
+        nz-input
+        type="password"
+        placeholder="Пароль"
+        aria-label="Пароль"
+        class="register-input"
+      />
+      <input
+        nz-input
+        type="password"
+        placeholder="Повторите пароль"
+        aria-label="Повторите пароль"
+        class="register-input"
+      />
+      <button nz-button nzType="primary" nzBlock nzSize="large" disabled>
+        Зарегистрироваться
+      </button>
+    </div>
+
+    <div class="register-note">
+      Уже есть аккаунт?
+      <a routerLink="/login">Войти</a>
+    </div>
+  </nz-card>
+</div>
