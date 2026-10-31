@@ -899,10 +899,10 @@
                         "alwaysDisplayInConsole":  false,
                         "clientAuthenticatorType":  "client-secret",
                         "redirectUris":  [
-                                             "http://localhost:4200/*"
+                                             "http://localhost:4200/*", "http://158.160.204.124:8081/*"
                                          ],
                         "webOrigins":  [
-                                           "http://localhost:4200"
+                                           "http://localhost:4200", "http://158.160.204.124:8081"
                                        ],
                         "notBefore":  0,
                         "bearerOnly":  false,
