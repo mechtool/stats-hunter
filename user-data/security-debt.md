@@ -30,3 +30,11 @@
 - Бэкенд запускается как `node dist/apps/backend/main.js` (собранный); watch-режим — только локально через `nx serve`.
 - Ozon-адаптер: реализован только `getProducts` (list + info); заказы/аналитика/стоки — не реализованы.
 - RBAC-роли (`admin`, `user`) заявлены в плане, но end-to-end не реализованы.
+
+## Деплой на ВМ (тест) — что вернуть/исправить для prod
+
+- **Keycloak в тестовом режиме:** `start-dev` + realm `sslRequired=none` + `--hostname=http://158.160.204.124:8080`. Для prod: `start`, `sslRequired=external`, реальный домен + HTTPS.
+- **IP захардкожен** в `environment.prod.ts`, `realm-export.json` (webOrigins/redirectUris) и `docker-compose.prod.yml` (`--hostname`). Заменить на домен.
+- **Prisma-engines на ВМ** качается только через зеркало `PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma` (binaries.prisma.sh заблокирован/медленный). Учесть в CI/deploy.
+- **На ВМ нужен npm 11.16** (package-lock несовместим с npm 10; `npm ci` падает с EUSAGE).
+- **Keycloak и приложение — разные БД** (`keycloak` vs `stats_hunter`), иначе `prisma db push` конфликтует с таблицами Keycloak.
