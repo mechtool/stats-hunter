@@ -6,39 +6,70 @@
       <p>Создайте аккаунт Stats Hunter</p>
     </div>
 
-    <div class="register-form">
-      <input
-        nz-input
-        type="text"
-        placeholder="Имя"
-        aria-label="Имя"
-        class="register-input"
-      />
-      <input
-        nz-input
-        type="email"
-        placeholder="Email"
-        aria-label="Email"
-        class="register-input"
-      />
-      <input
-        nz-input
-        type="password"
-        placeholder="Пароль"
-        aria-label="Пароль"
-        class="register-input"
-      />
-      <input
-        nz-input
-        type="password"
-        placeholder="Повторите пароль"
-        aria-label="Повторите пароль"
-        class="register-input"
-      />
-      <button nz-button nzType="primary" nzBlock nzSize="large" disabled>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-field">
+        <input
+          nz-input
+          type="text"
+          formControlName="name"
+          placeholder="Имя"
+          aria-label="Имя"
+        />
+        @if (nameError()) {
+          <div class="form-error">{{ nameError() }}</div>
+        }
+      </div>
+
+      <div class="form-field">
+        <input
+          nz-input
+          type="email"
+          formControlName="email"
+          placeholder="Email"
+          aria-label="Email"
+        />
+        @if (emailError()) {
+          <div class="form-error">{{ emailError() }}</div>
+        }
+      </div>
+
+      <div class="form-field">
+        <input
+          nz-input
+          type="password"
+          formControlName="password"
+          placeholder="Пароль"
+          aria-label="Пароль"
+        />
+        @if (passwordError()) {
+          <div class="form-error">{{ passwordError() }}</div>
+        }
+      </div>
+
+      <div class="form-field">
+        <input
+          nz-input
+          type="password"
+          formControlName="confirmPassword"
+          placeholder="Повторите пароль"
+          aria-label="Повторите пароль"
+        />
+        @if (confirmPasswordError()) {
+          <div class="form-error">{{ confirmPasswordError() }}</div>
+        }
+      </div>
+
+      <button
+        nz-button
+        nzType="primary"
+        nzBlock
+        nzSize="large"
+        type="submit"
+        [disabled]="form.invalid"
+      >
         Зарегистрироваться
       </button>
-    </div>
+    </form>
 
     <div class="register-note">
       Уже есть аккаунт?
