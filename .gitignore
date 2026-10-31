@@ -46,3 +46,8 @@ Thumbs.db
 
 .angular
 .codewhale/
+
+# environment
+.env
+.env.*
+!.env.example
