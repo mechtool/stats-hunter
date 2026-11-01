@@ -7,6 +7,7 @@
 - Keycloak brute-force protection включён (`realm-export.json` + локальная realm).
 - SMTP-отправка писем сброса пароля (Яндекс `smtp.yandex.ru:465`, `SMTP_*` в `.env`).
 - CORS whitelist, глобальный `JwtAuthGuard`, rate limiting на `/api/auth/*`.
+- **Prod-деплой (2026-11-01):** TLS (Let's Encrypt) для `stats-hunter.ru` + `auth.stats-hunter.ru`, Keycloak в prod-режиме (`--proxy-headers=xforwarded --http-enabled=true`, realm `sslRequired=external`), доменные URL во фронте/бэке, edge nginx SNI (it-client, отдельный conf + override).
 
 ## Критично (перед продакшеном)
 
@@ -44,3 +45,12 @@
 - **На ВМ нужен npm 11.16** (package-lock несовместим с npm 10; `npm ci` падает с EUSAGE).
 - **Keycloak и приложение — разные БД** (`keycloak` vs `stats_hunter`), иначе `prisma db push` конфликтует с таблицами Keycloak.
 - **Security group ВМ открыта полностью** (default `default-sg-enph4ak7mlo5ttbehehi`, INGRESS/EGRESS ANY 0.0.0.0/0) — для prod закрыть до 80/443 (+22 SSH).
+
+## Прод-долг (после продакшена, 2026-11-01)
+
+- **`www.stats-hunter.ru` не в сертификате** — добавить `certbot certonly --cert-name stats-hunter.ru -d stats-hunter.ru -d www.stats-hunter.ru` (после очистки AAAA-кэша LE).
+- **Keycloak admin `admin/admin`** — сменить пароль (в `master` realm).
+- **Бэкенд = `nohup node` без автоперезапуска** — перевести на systemd/pm2.
+- **Security group ВМ открыта (0.0.0.0/0)** — закрыть до 80/443 (+22 SSH).
+- **industrial-telemetry: могли потеряться `DADATA_API_KEY` / `WEBHOOK_SECRET`** (были в deploy shell-env, а не в `.env`) — при необходимости восстановить из `~/.bash_history`. `SMTP_URI` теперь закреплён в `~/industrial-telemetry/.env`.
+- **Закоммитить прод-конфиги:** `docker-compose.prod.yml` (команда Keycloak), `infra/nginx/stats-hunter.edge.conf`, `infra/nginx/docker-compose.stats-hunter.override.yml`.

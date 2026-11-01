@@ -84,7 +84,7 @@
 - Инфраструктура: Docker Compose (Postgres + Redis + Keycloak), Postgres/Redis подняты и healthy. Prisma 7: схема (`users`, `marketplace_credentials`), клиент, `PrismaService` (pg-адаптер), `db push` применён, бэкенд перезапущен.
 - Хранилище ключей: `MarketplaceCredentialsService` — шифрование AES-256-GCM → `marketplace_credentials.encryptedPayload` (JSON секретов), расшифровка при чтении + 3 теста.
 - Ozon-адаптер: `OzonAdapter.getProducts` (list + info) реализован и live-проверен (`/v3/product/list` → 200). Первая площадка фактически — Ozon (ключи предоставлены).
-- Следующий шаг: расширить Ozon (заказы/аналитика/стоки) или макеты Pixso (Keycloak).
+- Следующий шаг: закрыть прод-техдолг (§11 + `security-debt.md`), затем Фаза 2 (фронт WB/Ozon).
 
 ## 10. Замечания Фазы 0 (к исправлению позже)
 - `npm approve-scripts` выполнен, нативные модули пересобраны (esbuild, lmdb, msgpackr-extract, @parcel/watcher, unrs-resolver, nx).
@@ -93,3 +93,16 @@
 - NG-ZORRO подключён полным CSS (`ng-zorro-antd.min.css`, ~558 KB). Попытка tree-shaking (базовый `style/index.min.css` + стили из импортов) сломала разметку формы входа — откачено; вернуться позже (нужны CSS-переменные темы).
 - Git-репозиторий инициализирован: ветка `master`, первый коммит `0c23722` (55 файлов).
 - Ozon API-ключ получен от пользователя — хранится в `.env` (в git не коммитим).
+
+## 11. Продакшен-деплой (2026-11-01, актуально)
+
+`stats-hunter.ru` в проде на ВМ (158.160.204.124) с HTTPS, на одной ВМ с industrial-telemetry через общий edge-nginx (SNI).
+
+- **Домены:** `https://stats-hunter.ru` (фронт + `/api`), `https://auth.stats-hunter.ru` (Keycloak).
+- **TLS:** Let's Encrypt (certbot webroot через docker-volume `industrial-telemetry_certbot-webroot`). `www.stats-hunter.ru` пока без сертификата (кэш AAAA у LE) — добавить позже `certbot --expand`.
+- **Edge nginx:** `it-client` раздаёт stats-hunter отдельным `stats-hunter.conf` + override `docker-compose.stats-hunter.yml` (host-gateway). `nginx.yc.conf` IT не тронут.
+- **Keycloak 26 (prod):** `start --hostname=auth.stats-hunter.ru --proxy-headers=xforwarded --http-enabled=true` (в KC26 нет `--proxy=edge`; `--http-enabled` обязателен). Realm `sslRequired=external`, origins → `https://stats-hunter.ru`.
+- **Бэкенд:** host-процесс `node dist/apps/backend/main.js`, `.env` на доменных URL + SMTP. Prisma: `password_reset_tokens`.
+- **Проверено E2E:** логин (ROPC), `/api/profile` (JWT), регистрация, forgot-password; IT не сломан.
+
+Дальше (приоритет): 1) прод-техдолг из `security-debt.md` (PKCE, Keycloak admin, systemd, SG); 2) Фаза 2 — фронт WB/Ozon; 3) `www`-сертификат; 4) при росте трафика — вынос в serverless (вариант из обсуждения).

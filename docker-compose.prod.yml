@@ -39,7 +39,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     restart: unless-stopped
-    command: start-dev --import-realm --hostname=http://158.160.204.124:8080
+    command: start --hostname=auth.stats-hunter.ru --proxy-headers=xforwarded --http-enabled=true
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
