@@ -1,0 +1,88 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { sendSmtpMail, SmtpOptions } from './smtp.transport';
+
+/**
+ * Transactional-mail transport for auth flows.
+ *
+ * Precedence:
+ * 1. SMTP (SMTP_HOST/SMTP_USER/SMTP_PASS) — real delivery, e.g. Yandex Mail
+ *    on smtp.yandex.ru:465 with an application password.
+ * 2. MAILER_WEBHOOK_URL — an HTTP bridge that accepts
+ *    `{ from, to, subject, text, html }`.
+ * 3. Log the reset link to the backend console (dev fallback).
+ */
+@Injectable()
+export class MailService {
+  private readonly logger = new Logger(MailService.name);
+  private readonly from: string;
+  private readonly webhookUrl: string | undefined;
+  private readonly smtp: SmtpOptions | undefined;
+
+  constructor(config: ConfigService) {
+    this.webhookUrl = config.get<string>('MAILER_WEBHOOK_URL');
+
+    const smtpHost = config.get<string>('SMTP_HOST');
+    const smtpUser = config.get<string>('SMTP_USER');
+    const smtpPass = config.get<string>('SMTP_PASS');
+
+    if (smtpHost && smtpUser && smtpPass) {
+      this.smtp = {
+        host: smtpHost,
+        port: Number(config.get<string>('SMTP_PORT') ?? 465),
+        user: smtpUser,
+        pass: smtpPass,
+      };
+    }
+
+    // Yandex (and most providers) require the From address to match the
+    // authenticated mailbox, so default to SMTP_USER when it is available.
+    this.from =
+      config.get<string>('MAILER_FROM') ??
+      (smtpUser
+        ? `Stats Hunter <${smtpUser}>`
+        : 'Stats Hunter <no-reply@stats-hunter.local>');
+  }
+
+  async sendPasswordResetEmail(to: string, link: string): Promise<void> {
+    const subject = 'Сброс пароля Stats Hunter';
+    const text =
+      `Перейдите по ссылке, чтобы задать новый пароль:\n${link}\n\n` +
+      'Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.';
+    const html =
+      `<p>Перейдите по ссылке, чтобы задать новый пароль:</p>` +
+      `<p><a href="${link}">${link}</a></p>` +
+      '<p>Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>';
+
+    if (this.smtp) {
+      await sendSmtpMail(this.smtp, {
+        from: this.from,
+        to,
+        subject,
+        text,
+        html,
+      });
+      return;
+    }
+
+    if (this.webhookUrl) {
+      const res = await fetch(this.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: this.from, to, subject, text, html }),
+      });
+      if (!res.ok) {
+        throw new Error(`Mailer webhook failed with status ${res.status}`);
+      }
+      return;
+    }
+
+    // Dev fallback: no transport configured. Keep the link observable so the
+    // reset flow can be tested end-to-end until SMTP/MAILER_WEBHOOK_URL is set.
+    this.logger.warn(
+      `No mail transport configured (set SMTP_HOST/SMTP_USER/SMTP_PASS or ` +
+        `MAILER_WEBHOOK_URL) — password reset email not actually sent. ` +
+        `RESET_LINK for ${to}: ${link}`,
+    );
+  }
+}

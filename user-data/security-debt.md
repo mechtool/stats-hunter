@@ -1,7 +1,12 @@
 # stats-hunter — Security / Tech Debt (к ликвидации)
 
 > Живой список уязвимостей и техдолга. Фиксируем сейчас, закрываем позже — перед продакшеном.
-> Последнее обновление: 2026-10-31.
+> Последнее обновление: 2026-11-01.
+
+## Недавно закрыто (2026-11-01)
+- Keycloak brute-force protection включён (`realm-export.json` + локальная realm).
+- SMTP-отправка писем сброса пароля (Яндекс `smtp.yandex.ru:465`, `SMTP_*` в `.env`).
+- CORS whitelist, глобальный `JwtAuthGuard`, rate limiting на `/api/auth/*`.
 
 ## Критично (перед продакшеном)
 
@@ -10,9 +15,9 @@
 - **Регистрация через Keycloak Admin API** — бэкенд хранит `KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD` в env и создаёт юзеров от имени админа. Это высокопривилегированные креды на сервере приложения; заменить на менее привилегированного сервисного пользователя/отдельный flow.
 - **Keycloak bootstrap admin = `admin`/`admin`** (дефолт) — сменить на стойкий пароль; хранить в Lockbox.
 - **`STATS_HUNTER_ENCRYPTION_KEY` — dev-заглушка.** Нужен реальный мастер-ключ из secret manager (Yandex Lockbox), ротация.
-- **CORS на бэке = `true` (allow-all), если `CORS_ORIGIN` не задан** (`main.ts`). В prod обязательно whitelist конкретных origin.
-- **Нет rate limiting на API** (в плане заявлен) — добавить.
-- **JwtAuthGuard применяется точечно** (`@UseGuards`), а не глобально (`APP_GUARD`). Проверить, что ВСЕ `/api/*`-маршруты (включая marketplace/credentials) закрыты; сейчас вне auth может быть что-то открыто.
+- **CORS на бэке = `true` (allow-all), если `CORS_ORIGIN` не задан** (`main.ts`). — ✅ сделано (2026-11-01): явный whitelist, пустой `CORS_ORIGIN` = запретить cross-origin.
+- **Нет rate limiting на API** — ✅ базово сделано (2026-11-01): in-memory limiter на `/api/auth/*` (`RateLimitGuard`, `RATE_LIMIT_*`). Для мульти-инстанса перенести на Redis.
+- **JwtAuthGuard применяется точечно** (`@UseGuards`), а не глобально (`APP_GUARD`). — ✅ сделано (2026-11-01): глобальный `APP_GUARD` + `@Public()` на `/api`, `/api/health`, `/api/auth/*`.
 - **Порты Postgres/Redis/Keycloak опубликованы наружу (0.0.0.0)** в dev-compose. В prod наружу только 80/443; остальное — внутри Docker-сети + security group ВМ.
 
 ## Средне / гигиена

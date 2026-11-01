@@ -12,10 +12,16 @@ async function bootstrap() {
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
+  const corsOrigins = (process.env.CORS_ORIGIN ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  // Explicit allow-list only: no CORS_ORIGIN means cross-origin requests are
+  // rejected (same-origin deployments, e.g. nginx frontend + /api proxy, work
+  // without CORS). Never fall back to allow-all.
   app.enableCors({
-    origin: process.env.CORS_ORIGIN
-      ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim())
-      : true,
+    origin: corsOrigins.length > 0 ? corsOrigins : false,
     credentials: true,
   });
 

@@ -8,68 +8,88 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-field">
-        <input
-          nz-input
-          type="text"
-          formControlName="name"
-          placeholder="Имя"
-          aria-label="Имя"
-        />
-        @if (nameError()) {
-          <div class="form-error">{{ nameError() }}</div>
-        }
-      </div>
-
-      <div class="form-field">
-        <input
-          nz-input
-          type="email"
-          formControlName="email"
-          placeholder="Email"
-          aria-label="Email"
-        />
+        <label class="field-label required" for="email">Email</label>
+        <div class="input-wrapper">
+          <span
+            class="field-icon"
+            nz-icon
+            nzType="mail"
+            nzTheme="outline"
+            aria-hidden="true"
+          ></span>
+          <input
+            id="email"
+            nz-input
+            type="email"
+            formControlName="email"
+            placeholder="Введите email"
+            aria-label="Email"
+          />
+        </div>
         @if (emailError()) {
           <div class="form-error">{{ emailError() }}</div>
         }
       </div>
 
-      <div class="form-field password-field">
-        <input
-          nz-input
-          [type]="showPassword ? 'text' : 'password'"
-          formControlName="password"
-          placeholder="Пароль"
-          aria-label="Пароль"
-        />
-        <button
-          type="button"
-          class="password-toggle"
-          [attr.aria-label]="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
-          (click)="showPassword = !showPassword"
-        >
-          <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'"></span>
-        </button>
+      <div class="form-field">
+        <label class="field-label required" for="password">Пароль</label>
+        <div class="input-wrapper password-field">
+          <span
+            class="field-icon"
+            nz-icon
+            nzType="lock"
+            nzTheme="outline"
+            aria-hidden="true"
+          ></span>
+          <input
+            id="password"
+            nz-input
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="Введите пароль"
+            aria-label="Пароль"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            [attr.aria-label]="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
+            (click)="showPassword = !showPassword"
+          >
+            <span nz-icon [nzType]="showPassword ? 'eye-invisible' : 'eye'"></span>
+          </button>
+        </div>
         @if (passwordError()) {
           <div class="form-error">{{ passwordError() }}</div>
         }
       </div>
 
-      <div class="form-field password-field">
-        <input
-          nz-input
-          [type]="showConfirmPassword ? 'text' : 'password'"
-          formControlName="confirmPassword"
-          placeholder="Повторите пароль"
-          aria-label="Повторите пароль"
-        />
-        <button
-          type="button"
-          class="password-toggle"
-          [attr.aria-label]="showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'"
-          (click)="showConfirmPassword = !showConfirmPassword"
-        >
-          <span nz-icon [nzType]="showConfirmPassword ? 'eye-invisible' : 'eye'"></span>
-        </button>
+      <div class="form-field">
+        <label class="field-label required" for="confirmPassword">Повторите пароль</label>
+        <div class="input-wrapper password-field">
+          <span
+            class="field-icon"
+            nz-icon
+            nzType="lock"
+            nzTheme="outline"
+            aria-hidden="true"
+          ></span>
+          <input
+            id="confirmPassword"
+            nz-input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            placeholder="Повторите пароль"
+            aria-label="Повторите пароль"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            [attr.aria-label]="showConfirmPassword ? 'Скрыть пароль' : 'Показать пароль'"
+            (click)="showConfirmPassword = !showConfirmPassword"
+          >
+            <span nz-icon [nzType]="showConfirmPassword ? 'eye-invisible' : 'eye'"></span>
+          </button>
+        </div>
         @if (confirmPasswordError()) {
           <div class="form-error">{{ confirmPasswordError() }}</div>
         }

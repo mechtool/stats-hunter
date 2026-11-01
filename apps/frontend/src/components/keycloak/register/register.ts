@@ -42,7 +42,6 @@ export class RegisterComponent {
 
   form = new FormGroup(
     {
-      name: new FormControl('', [Validators.required]),
       email: new FormControl('', [Validators.required, Validators.email]),
       password: new FormControl('', [
         Validators.required,
@@ -55,13 +54,6 @@ export class RegisterComponent {
 
   showPassword = false;
   showConfirmPassword = false;
-
-  nameError(): string {
-    const control = this.form.controls.name;
-    if (control.pristine && control.untouched) return '';
-    if (control.hasError('required')) return 'Введите имя';
-    return '';
-  }
 
   emailError(): string {
     const control = this.form.controls.email;
@@ -91,7 +83,6 @@ export class RegisterComponent {
     if (this.form.invalid) return;
     try {
       await this.keycloak.register(
-        this.form.value.name ?? '',
         this.form.value.email ?? '',
         this.form.value.password ?? '',
       );
@@ -102,10 +93,13 @@ export class RegisterComponent {
       this.notification.success('Регистрация завершена', 'Вы вошли в аккаунт.');
       this.router.navigate(['/home']);
     } catch (error) {
-      const message =
-        error instanceof HttpErrorResponse
-          ? (error.error?.message ?? 'Ошибка регистрации')
-          : 'Ошибка регистрации';
+      let message = 'Ошибка регистрации';
+      if (error instanceof HttpErrorResponse) {
+        message =
+          error.status === 409
+            ? 'Пользователь уже существует'
+            : (error.error?.message ?? 'Ошибка регистрации');
+      }
       this.notification.error('Ошибка регистрации', message);
     }
   }

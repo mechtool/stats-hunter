@@ -42,7 +42,24 @@ export class KeycloakService {
     });
 
     if (!res.ok) {
-      throw new Error('Неверный email или пароль');
+      let message = 'Неверный email или пароль';
+      try {
+        const data = (await res.json()) as {
+          error?: string;
+          error_description?: string;
+        };
+        const description = (data.error_description ?? '').toLowerCase();
+        if (description.includes('not fully set up')) {
+          message = 'Аккаунт не полностью настроен';
+        } else if (description.includes('invalid user credentials')) {
+          message = 'Неверный email или пароль';
+        } else if (data.error_description) {
+          message = data.error_description;
+        }
+      } catch {
+        // keep the generic message when the response body cannot be parsed
+      }
+      throw new Error(message);
     }
 
     const data = (await res.json()) as { access_token: string };
@@ -52,9 +69,21 @@ export class KeycloakService {
     localStorage.setItem(EMAIL_KEY, email);
   }
 
-  async register(name: string, email: string, password: string): Promise<void> {
+  async register(email: string, password: string): Promise<void> {
     await firstValueFrom(
-      this.http.post('/api/auth/register', { name, email, password }),
+      this.http.post('/api/auth/register', { email, password }),
+    );
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/forgot-password', { email }),
+    );
+  }
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/reset-password', { token, password }),
     );
   }
 

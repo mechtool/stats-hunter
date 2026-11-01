@@ -31,3 +31,15 @@ model MarketplaceCredential {
   @@unique([userId, marketplace])
   @@map("marketplace_credentials")
 }
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+  @@map("password_reset_tokens")
+}

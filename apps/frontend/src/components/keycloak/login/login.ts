@@ -62,8 +62,10 @@ export class LoginComponent {
       );
       this.notification.success('Вход выполнен', 'Вы успешно вошли.');
       this.router.navigate(['/home']);
-    } catch {
-      this.notification.error('Ошибка входа', 'Неверный email или пароль');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Неверный email или пароль';
+      this.notification.error('Ошибка входа', message);
     }
   }
 }
