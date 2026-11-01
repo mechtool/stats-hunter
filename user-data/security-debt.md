@@ -8,13 +8,15 @@
 - SMTP-отправка писем сброса пароля (Яндекс `smtp.yandex.ru:465`, `SMTP_*` в `.env`).
 - CORS whitelist, глобальный `JwtAuthGuard`, rate limiting на `/api/auth/*`.
 - **Prod-деплой (2026-11-01):** TLS (Let's Encrypt) для `stats-hunter.ru` + `auth.stats-hunter.ru`, Keycloak в prod-режиме (`--proxy-headers=xforwarded --http-enabled=true`, realm `sslRequired=external`), доменные URL во фронте/бэке, edge nginx SNI (it-client, отдельный conf + override).
+- **Security group закрыта (2026-11-01):** ingress только 22(SSH)/80/443/1883(MQTT — оставлен намеренно), egress открыт.
+- **Прод-конфиги закоммичены** (`84381ef`): `docker-compose.prod.yml`, edge-конфиг/override, доки.
 
 ## Критично (перед продакшеном)
 
 - **Auth: password grant вместо OIDC Authorization Code + PKCE.** Текущий вход идёт через Resource Owner Password Credentials (прямой `POST /token` с паролем из браузера). В плане заявлен OIDC + PKCE — вернуться к нему для prod.
 - **JWT хранится в localStorage** (`stats-hunter.access_token`) — уязвимо к XSS. Для prod рассмотреть httpOnly-cookie/сессионную схему.
 - **Регистрация через Keycloak Admin API** — бэкенд хранит `KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD` в env и создаёт юзеров от имени админа. Это высокопривилегированные креды на сервере приложения; заменить на менее привилегированного сервисного пользователя/отдельный flow.
-- **Keycloak bootstrap admin = `admin`/`admin`** (дефолт) — сменить на стойкий пароль; хранить в Lockbox.
+- **Keycloak bootstrap admin = `admin`/`admin`** (дефолт) — сменить на стойкий пароль; хранить в Lockbox. ⏳ **Отложено (решение 2026-11-01).**
 - **`STATS_HUNTER_ENCRYPTION_KEY` — dev-заглушка.** Нужен реальный мастер-ключ из secret manager (Yandex Lockbox), ротация.
 - **CORS на бэке = `true` (allow-all), если `CORS_ORIGIN` не задан** (`main.ts`). — ✅ сделано (2026-11-01): явный whitelist, пустой `CORS_ORIGIN` = запретить cross-origin.
 - **Нет rate limiting на API** — ✅ базово сделано (2026-11-01): in-memory limiter на `/api/auth/*` (`RateLimitGuard`, `RATE_LIMIT_*`). Для мульти-инстанса перенести на Redis.
@@ -39,6 +41,8 @@
 
 ## Деплой на ВМ (тест) — что вернуть/исправить для prod
 
+> ✅ Пункты (Keycloak prod, домены, SG) выполнены при деплое 2026-11-01. Остальное — справочные замечания.
+
 - **Keycloak в тестовом режиме:** `start-dev` + realm `sslRequired=none` + `--hostname=http://158.160.204.124:8080`. Для prod: `start`, `sslRequired=external`, реальный домен + HTTPS.
 - **IP захардкожен** в `environment.prod.ts`, `realm-export.json` (webOrigins/redirectUris) и `docker-compose.prod.yml` (`--hostname`). Заменить на домен.
 - **Prisma-engines на ВМ** качается только через зеркало `PRISMA_ENGINES_MIRROR=https://registry.npmmirror.com/-/binary/prisma` (binaries.prisma.sh заблокирован/медленный). Учесть в CI/deploy.
@@ -49,8 +53,8 @@
 ## Прод-долг (после продакшена, 2026-11-01)
 
 - **`www.stats-hunter.ru` не в сертификате** — добавить `certbot certonly --cert-name stats-hunter.ru -d stats-hunter.ru -d www.stats-hunter.ru` (после очистки AAAA-кэша LE).
-- **Keycloak admin `admin/admin`** — сменить пароль (в `master` realm).
+- **Keycloak admin `admin/admin`** — сменить пароль (в `master` realm). ⏳ отложено.
 - **Бэкенд = `nohup node` без автоперезапуска** — перевести на systemd/pm2.
-- **Security group ВМ открыта (0.0.0.0/0)** — закрыть до 80/443 (+22 SSH).
+- ~~Security group~~ ✅ закрыта (ingress 22/80/443/1883).
 - **industrial-telemetry: могли потеряться `DADATA_API_KEY` / `WEBHOOK_SECRET`** (были в deploy shell-env, а не в `.env`) — при необходимости восстановить из `~/.bash_history`. `SMTP_URI` теперь закреплён в `~/industrial-telemetry/.env`.
-- **Закоммитить прод-конфиги:** `docker-compose.prod.yml` (команда Keycloak), `infra/nginx/stats-hunter.edge.conf`, `infra/nginx/docker-compose.stats-hunter.override.yml`.
+- ~~Закоммитить прод-конфиги~~ ✅ сделано (`84381ef`).
