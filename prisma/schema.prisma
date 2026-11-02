@@ -43,3 +43,16 @@ model PasswordResetToken {
   @@index([email])
   @@map("password_reset_tokens")
 }
+
+model EmailVerificationToken {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique
+  tokenHash         String    @unique
+  passwordEncrypted String
+  expiresAt         DateTime
+  usedAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([email])
+  @@map("email_verification_tokens")
+}

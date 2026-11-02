@@ -45,14 +45,40 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(to: string, link: string): Promise<void> {
-    const subject = 'Сброс пароля Stats Hunter';
-    const text =
-      `Перейдите по ссылке, чтобы задать новый пароль:\n${link}\n\n` +
-      'Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.';
-    const html =
-      `<p>Перейдите по ссылке, чтобы задать новый пароль:</p>` +
-      `<p><a href="${link}">${link}</a></p>` +
-      '<p>Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>';
+    await this.send({
+      to,
+      subject: 'Сброс пароля Stats Hunter',
+      text:
+        `Перейдите по ссылке, чтобы задать новый пароль:\n${link}\n\n` +
+        'Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.',
+      html:
+        `<p>Перейдите по ссылке, чтобы задать новый пароль:</p>` +
+        `<p><a href="${link}">${link}</a></p>` +
+        '<p>Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>',
+    });
+  }
+
+  async sendEmailVerificationEmail(to: string, link: string): Promise<void> {
+    await this.send({
+      to,
+      subject: 'Подтверждение email — Stats Hunter',
+      text:
+        `Подтвердите ваш email, перейдя по ссылке:\n${link}\n\n` +
+        'Если вы не регистрировались в Stats Hunter, проигнорируйте это письмо.',
+      html:
+        `<p>Подтвердите ваш email, перейдя по ссылке:</p>` +
+        `<p><a href="${link}">${link}</a></p>` +
+        '<p>Если вы не регистрировались в Stats Hunter, проигнорируйте это письмо.</p>',
+    });
+  }
+
+  private async send(message: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<void> {
+    const { to, subject, text, html } = message;
 
     if (this.smtp) {
       await sendSmtpMail(this.smtp, {
@@ -78,11 +104,11 @@ export class MailService {
     }
 
     // Dev fallback: no transport configured. Keep the link observable so the
-    // reset flow can be tested end-to-end until SMTP/MAILER_WEBHOOK_URL is set.
+    // flow can be tested end-to-end until SMTP/MAILER_WEBHOOK_URL is set.
     this.logger.warn(
       `No mail transport configured (set SMTP_HOST/SMTP_USER/SMTP_PASS or ` +
-        `MAILER_WEBHOOK_URL) — password reset email not actually sent. ` +
-        `RESET_LINK for ${to}: ${link}`,
+        `MAILER_WEBHOOK_URL) — email not actually sent. ` +
+        `LINK for ${to}: ${text.split('\n').find((line) => line.startsWith('http')) ?? ''}`,
     );
   }
 }

@@ -82,16 +82,11 @@ export class RegisterComponent {
   async onSubmit(): Promise<void> {
     if (this.form.invalid) return;
     try {
-      await this.keycloak.register(
-        this.form.value.email ?? '',
-        this.form.value.password ?? '',
-      );
-      await this.keycloak.login(
-        this.form.value.email ?? '',
-        this.form.value.password ?? '',
-      );
-      this.notification.success('Регистрация завершена', 'Вы вошли в аккаунт.');
-      this.router.navigate(['/home']);
+      const email = this.form.value.email ?? '';
+      await this.keycloak.register(email, this.form.value.password ?? '');
+      this.router.navigate(['/check-email'], {
+        queryParams: { email },
+      });
     } catch (error) {
       let message = 'Ошибка регистрации';
       if (error instanceof HttpErrorResponse) {

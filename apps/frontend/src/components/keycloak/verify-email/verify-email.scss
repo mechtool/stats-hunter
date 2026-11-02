@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.verify-email-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%);
+}
+
+.verify-email-card {
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.verify-email-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 8px;
+  text-align: center;
+
+  h1 {
+    margin: 8px 0 0;
+    font-size: 20px;
+    line-height: 1.3;
+    color: #0f172a;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 14px;
+  }
+
+  a {
+    margin-top: 12px;
+  }
+}
+
+.verify-email-spinner {
+  font-size: 32px;
+  color: #1677ff;
+}
+
+.verify-email-error-icon {
+  font-size: 32px;
+  color: #ff4d4f;
+}

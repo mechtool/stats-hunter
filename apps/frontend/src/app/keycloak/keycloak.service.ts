@@ -75,6 +75,31 @@ export class KeycloakService {
     );
   }
 
+  async resendVerification(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/resend-verification', { email }),
+    );
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    const res = await firstValueFrom(
+      this.http.post<{ access_token: string; email: string }>(
+        '/api/auth/verify-email',
+        { token },
+      ),
+    );
+    this.accessToken = res.access_token;
+    this.email = res.email;
+    localStorage.setItem(TOKEN_KEY, res.access_token);
+    localStorage.setItem(EMAIL_KEY, res.email);
+  }
+
+  async cancelRegistration(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/cancel-registration', { email }),
+    );
+  }
+
   async requestPasswordReset(email: string): Promise<void> {
     await firstValueFrom(
       this.http.post('/api/auth/forgot-password', { email }),

@@ -1,0 +1,24 @@
+<div class="verify-email-wrapper">
+  <nz-card class="verify-email-card">
+    @if (verifying()) {
+      <div class="verify-email-state">
+        <span class="verify-email-spinner" nz-icon nzType="loading"></span>
+        <p>Подтверждаем email…</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="verify-email-state">
+        <span
+          class="verify-email-error-icon"
+          nz-icon
+          nzType="close-circle"
+          nzTheme="outline"
+        ></span>
+        <h1>Не удалось подтвердить email</h1>
+        <p>{{ errorMessage() }}</p>
+        <a nz-button nzType="primary" nzSize="large" routerLink="/register">
+          Вернуться к регистрации
+        </a>
+      </div>
+    }
+  </nz-card>
+</div>

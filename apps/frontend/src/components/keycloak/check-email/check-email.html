@@ -1,0 +1,40 @@
+<div class="check-email-wrapper">
+  <nz-card class="check-email-card">
+    <div class="check-email-brand">
+      <div class="check-email-logo">SH</div>
+      <h1>Подтвердите email</h1>
+      <p>
+        На адрес <strong>{{ email }}</strong> отправлена ссылка для
+        подтверждения почты. Перейдите по ней, чтобы войти в аккаунт.
+      </p>
+    </div>
+
+    <div class="check-email-actions">
+      <button
+        nz-button
+        nzBlock
+        nzSize="large"
+        type="button"
+        (click)="decline()"
+      >
+        Отказаться
+      </button>
+
+      <button
+        nz-button
+        nzType="primary"
+        nzBlock
+        nzSize="large"
+        type="button"
+        [disabled]="!canResend()"
+        (click)="resend()"
+      >
+        @if (canResend()) {
+          Отправить ссылку повторно
+        } @else {
+          Отправить повторно через {{ remainingSeconds() }} с
+        }
+      </button>
+    </div>
+  </nz-card>
+</div>
