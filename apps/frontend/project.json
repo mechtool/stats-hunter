@@ -27,7 +27,12 @@
           }
         ],
         "styles": [
-          "node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+          "node_modules/ng-zorro-antd/style/index.min.css",
+          "node_modules/ng-zorro-antd/button/style/index.min.css",
+          "node_modules/ng-zorro-antd/card/style/index.min.css",
+          "node_modules/ng-zorro-antd/icon/style/index.min.css",
+          "node_modules/ng-zorro-antd/input/style/index.min.css",
+          "node_modules/ng-zorro-antd/notification/style/index.min.css",
           "apps/frontend/src/styles.scss"
         ]
       },
