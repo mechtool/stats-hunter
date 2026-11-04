@@ -54,8 +54,8 @@ interface KeycloakUser {
 export class AuthController {
   private readonly baseUrl: string;
   private readonly realm: string;
-  private readonly adminUser: string;
-  private readonly adminPassword: string;
+  private readonly serviceUser: string;
+  private readonly servicePassword: string;
   private readonly frontendUrl: string;
   private readonly clientId: string;
   private readonly encryptionKey: string;
@@ -70,8 +70,8 @@ export class AuthController {
   ) {
     this.baseUrl = config.get('KEYCLOAK_URL') ?? 'http://localhost:8080';
     this.realm = config.get('KEYCLOAK_REALM') ?? 'stats-hunter';
-    this.adminUser = config.get('KEYCLOAK_ADMIN') ?? 'admin';
-    this.adminPassword = config.get('KEYCLOAK_ADMIN_PASSWORD') ?? 'admin';
+    this.serviceUser = config.get('KEYCLOAK_SERVICE_USER') ?? 'svc-user-admin';
+    this.servicePassword = config.get('KEYCLOAK_SERVICE_PASSWORD') ?? '';
     this.frontendUrl = config.get('FRONTEND_URL') ?? 'http://localhost:4200';
     this.clientId = config.get('KEYCLOAK_CLIENT_ID') ?? 'stats-hunter-frontend';
     this.encryptionKey =
@@ -277,7 +277,7 @@ export class AuthController {
     password: string,
     userId?: string,
   ): Promise<void> {
-    const adminToken = await this.adminToken();
+    const token = await this.serviceToken();
 
     if (userId) {
       await this.resetUserPassword(userId, password);
@@ -288,7 +288,7 @@ export class AuthController {
     const res = await fetch(`${this.baseUrl}/admin/realms/${this.realm}/users`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${adminToken}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -321,13 +321,13 @@ export class AuthController {
     userId: string,
     verified: boolean,
   ): Promise<void> {
-    const adminToken = await this.adminToken();
+    const token = await this.serviceToken();
     const res = await fetch(
       `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
       {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${adminToken}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -342,12 +342,12 @@ export class AuthController {
   }
 
   private async deleteUser(userId: string): Promise<void> {
-    const adminToken = await this.adminToken();
+    const token = await this.serviceToken();
     const res = await fetch(
       `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
       {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${adminToken}` },
+        headers: { Authorization: `Bearer ${token}` },
       },
     );
     if (!res.ok && res.status !== 404) {
@@ -409,10 +409,10 @@ export class AuthController {
   }
 
   private async findUserByEmail(email: string): Promise<KeycloakUser | null> {
-    const adminToken = await this.adminToken();
+    const token = await this.serviceToken();
     const url = `${this.baseUrl}/admin/realms/${this.realm}/users?search=${encodeURIComponent(email)}&max=100`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${adminToken}` },
+      headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
       throw new BadRequestException('Не удалось получить пользователя');
@@ -426,13 +426,13 @@ export class AuthController {
   }
 
   private async resetUserPassword(userId: string, password: string): Promise<void> {
-    const adminToken = await this.adminToken();
+    const token = await this.serviceToken();
     const res = await fetch(
       `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/reset-password`,
       {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${adminToken}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -451,15 +451,15 @@ export class AuthController {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private async adminToken(): Promise<string> {
+  private async serviceToken(): Promise<string> {
     const body = new URLSearchParams({
       grant_type: 'password',
       client_id: 'admin-cli',
-      username: this.adminUser,
-      password: this.adminPassword,
+      username: this.serviceUser,
+      password: this.servicePassword,
     });
     const res = await fetch(
-      `${this.baseUrl}/realms/master/protocol/openid-connect/token`,
+      `${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
