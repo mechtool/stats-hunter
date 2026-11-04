@@ -3,6 +3,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  NotFoundException,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -212,10 +213,9 @@ export class AuthController {
       throw new BadRequestException('Email обязателен');
     }
 
-    // Always answer the same to avoid account enumeration.
     const user = await this.findUserByEmail(email);
     if (!user) {
-      return { ok: true };
+      throw new NotFoundException('Пользователь не найден');
     }
 
     const token = randomBytes(32).toString('base64url');

@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { CredentialsService } from '../credentials/credentials.service';
 import { AuthController } from './auth.controller';
 
@@ -305,7 +305,7 @@ describe('AuthController', () => {
       });
     }
 
-    it('returns ok without creating a token when the email is unknown', async () => {
+    it('throws NotFound when the email is unknown', async () => {
       fetchMock.mockImplementation((url: RequestInfo | URL) => {
         const target = String(url);
         if (target.includes('protocol/openid-connect/token')) {
@@ -317,11 +317,10 @@ describe('AuthController', () => {
         return Promise.resolve(jsonResponse({}));
       });
 
-      const result = await controller.forgotPassword({
-        email: 'nobody@example.com',
-      });
+      await expect(
+        controller.forgotPassword({ email: 'nobody@example.com' }),
+      ).rejects.toThrow(NotFoundException);
 
-      expect(result).toEqual({ ok: true });
       expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
       expect(mail.sendPasswordResetEmail).not.toHaveBeenCalled();
     });

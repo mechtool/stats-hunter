@@ -6,6 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -52,14 +53,15 @@ export class ForgotPasswordComponent {
       await this.keycloak.requestPasswordReset(this.form.value.email ?? '');
       this.notification.success(
         'Ссылка отправлена',
-        'Если такой email зарегистрирован, мы отправили ссылку для сброса пароля.',
+        'Ссылка для сброса пароля отправлена на ваш email.',
       );
       this.router.navigate(['/login']);
-    } catch {
-      this.notification.error(
-        'Ошибка',
-        'Не удалось отправить ссылку. Попробуйте позже.',
-      );
+    } catch (error) {
+      let message = 'Не удалось отправить ссылку. Попробуйте позже.';
+      if (error instanceof HttpErrorResponse) {
+        message = error.error?.message ?? message;
+      }
+      this.notification.error('Ошибка', message);
     } finally {
       this.submitting = false;
     }
