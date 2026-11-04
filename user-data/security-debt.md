@@ -22,8 +22,14 @@
 
 ## Критично (осталось)
 
-- **Auth: password grant вместо OIDC Authorization Code + PKCE.** Текущий вход идёт через ROPC (прямой `POST /token` с паролем из браузера). Вернуться к OIDC + PKCE для prod.
-- **JWT хранится в localStorage** (`stats-hunter.access_token`) — уязвимо к XSS. Перейти на httpOnly-cookie/сессионную схему.
+### ⭐ Крупный пункт: PKCE + httpOnly-cookie (обдумать — решение UX за пользователем)
+Сейчас вход = ROPC (прямой `POST /token` с паролем из браузера) + JWT в `localStorage` (`stats-hunter.access_token`).
+
+- **Вариант A — полный (правильный).** Authorization Code + PKCE через Keycloak: логин через страницу Keycloak (редирект), токены в httpOnly-cookie (BFF). Убирает и password grant, и localStorage. Кастомная форма логина уходит (может стать «лендингом» с кнопкой «Войти»).
+- **Вариант B — частичный.** Кастомная форма остаётся: email/пароль → бэкенд, бэкенд делает password grant и ставит httpOnly-cookie. Убирает localStorage и пароль из браузера, но это всё ещё ROPC.
+
+Объём: фронт (login + keycloak-js/manual OIDC), бэк (callback + cookie + guard читает cookie), realm (PKCE + redirect URI).
+
 - **`STATS_HUNTER_ENCRYPTION_KEY` — dev-заглушка.** Нужен реальный мастер-ключ из secret manager (Yandex Lockbox), ротация.
 - **Ozon API-ключи лежат в `.env`** (плейнтекст) — первичные креды площадок перевести в Lockbox.
 - ~~Регистрация через Keycloak Admin API~~ ✅ заменено на сервисного пользователя (`svc-user-admin`).
