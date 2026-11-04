@@ -1,7 +1,12 @@
 # stats-hunter — план работы
 
 > Живой документ. Корректируем по мере работы.
-> Последнее обновление: 2026-10-31.
+> Последнее обновление: 2026-11-04.
+
+## Статус (2026-11-04)
+- Шаблон `app-template` вынесен в ветку `template` (auth + PWA + SW + `tools/rename.mjs`) и запушен в GitHub.
+- Прод на `master` (`5f2ba5e`): systemd для бэкенда, сервисный пользователь `svc-user-admin` вместо admin для регистрации, Keycloak admin-пароль сменён, `www` в cert, NG-ZORRO tree-shaking, `provideAnimationsAsync`, npm/Nx-версии приведены в порядок, фикс forgot-password.
+- Осталось из критичного техдолга: PKCE + httpOnly-cookie, Lockbox (см. `security-debt.md`).
 
 ## 1. Что строим
 Мультипользовательский SaaS (на продажу) для агрегации API маркетплейсов:
