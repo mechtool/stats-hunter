@@ -10,13 +10,13 @@ const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 12; // 96-bit IV, recommended for GCM
 const AUTH_TAG_LENGTH = 16; // 128-bit authentication tag
 const KEY_LENGTH = 32; // 256-bit key
-const KDF_SALT = 'stats-hunter::credentials::v1';
+const KDF_SALT = 'app-template::credentials::v1';
 
 /**
- * Encrypts/decrypts marketplace API credentials at rest using AES-256-GCM.
+ * Encrypts/decrypts sensitive values at rest using AES-256-GCM.
  *
  * The caller supplies a high-entropy master key (from a secret manager, e.g.
- * `STATS_HUNTER_ENCRYPTION_KEY`); this service never logs or returns it.
+ * `APP_ENCRYPTION_KEY`); this service never logs or returns it.
  * Ciphertext format: base64(iv || authTag || ciphertext).
  */
 @Injectable()

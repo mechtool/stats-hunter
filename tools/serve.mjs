@@ -59,5 +59,5 @@ createServer(async (req, res) => {
   res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-cache' });
   res.end(body);
 }).listen(port, '0.0.0.0', () => {
-  console.log(`stats-hunter static server: http://localhost:${port}`);
+  console.log(`app-template static server: http://localhost:${port}`);
 });

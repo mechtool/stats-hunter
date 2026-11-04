@@ -14,7 +14,7 @@ import { KeycloakService } from '../../../app/keycloak/keycloak.service';
 import { NotificationService } from '../../../app/services/notification.service';
 
 @Component({
-  selector: 'sh-login',
+  selector: 'app-login',
   imports: [
     RouterModule,
     ReactiveFormsModule,

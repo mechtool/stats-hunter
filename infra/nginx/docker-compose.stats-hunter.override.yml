@@ -1,9 +1,0 @@
-# Override для it-client: подключаем edge-конфиг stats-hunter и host-gateway.
-# Не меняет исходный docker-compose.yc.yml.
-# Применение: docker compose -f docker-compose.yc.yml -f docker-compose.stats-hunter.yml up -d client
-services:
-  client:
-    volumes:
-      - ./nginx/stats-hunter.conf:/etc/nginx/conf.d/stats-hunter.conf:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"

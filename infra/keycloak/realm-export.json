@@ -1,6 +1,6 @@
-﻿{
+{
     "id":  "edb67c8e-5845-466e-a41d-2738313042ca",
-    "realm":  "stats-hunter",
+    "realm":  "app-template",
     "notBefore":  0,
     "defaultSignatureAlgorithm":  "RS256",
     "revokeRefreshToken":  false,
@@ -60,7 +60,7 @@
                                 },
                                 {
                                     "id":  "49cb2c32-3f5d-4c4b-96e6-1cc989cae660",
-                                    "name":  "default-roles-stats-hunter",
+                                    "name":  "default-roles-app-template",
                                     "description":  "${role_default-roles}",
                                     "composite":  true,
                                     "composites":  {
@@ -347,7 +347,7 @@
                                  "security-admin-console":  [
 
                                                             ],
-                                 "stats-hunter-frontend":  [
+                                 "app-template-frontend":  [
 
                                                            ],
                                  "admin-cli":  [
@@ -480,7 +480,7 @@
                ],
     "defaultRole":  {
                         "id":  "49cb2c32-3f5d-4c4b-96e6-1cc989cae660",
-                        "name":  "default-roles-stats-hunter",
+                        "name":  "default-roles-app-template",
                         "description":  "${role_default-roles}",
                         "composite":  true,
                         "clientRole":  false,
@@ -565,13 +565,13 @@
                         "clientId":  "account",
                         "name":  "${client_account}",
                         "rootUrl":  "${authBaseUrl}",
-                        "baseUrl":  "/realms/stats-hunter/account/",
+                        "baseUrl":  "/realms/app-template/account/",
                         "surrogateAuthRequired":  false,
                         "enabled":  true,
                         "alwaysDisplayInConsole":  false,
                         "clientAuthenticatorType":  "client-secret",
                         "redirectUris":  [
-                                             "/realms/stats-hunter/account/*"
+                                             "/realms/app-template/account/*"
                                          ],
                         "webOrigins":  [
 
@@ -616,13 +616,13 @@
                         "clientId":  "account-console",
                         "name":  "${client_account-console}",
                         "rootUrl":  "${authBaseUrl}",
-                        "baseUrl":  "/realms/stats-hunter/account/",
+                        "baseUrl":  "/realms/app-template/account/",
                         "surrogateAuthRequired":  false,
                         "enabled":  true,
                         "alwaysDisplayInConsole":  false,
                         "clientAuthenticatorType":  "client-secret",
                         "redirectUris":  [
-                                             "/realms/stats-hunter/account/*"
+                                             "/realms/app-template/account/*"
                                          ],
                         "webOrigins":  [
 
@@ -825,13 +825,13 @@
                         "clientId":  "security-admin-console",
                         "name":  "${client_security-admin-console}",
                         "rootUrl":  "${authAdminUrl}",
-                        "baseUrl":  "/admin/stats-hunter/console/",
+                        "baseUrl":  "/admin/app-template/console/",
                         "surrogateAuthRequired":  false,
                         "enabled":  true,
                         "alwaysDisplayInConsole":  false,
                         "clientAuthenticatorType":  "client-secret",
                         "redirectUris":  [
-                                             "/admin/stats-hunter/console/*"
+                                             "/admin/app-template/console/*"
                                          ],
                         "webOrigins":  [
                                            "+"
@@ -893,16 +893,16 @@
                     },
                     {
                         "id":  "c64e87ef-7bfb-4e0a-844f-9a16cf17c6b7",
-                        "clientId":  "stats-hunter-frontend",
+                        "clientId":  "app-template-frontend",
                         "surrogateAuthRequired":  false,
                         "enabled":  true,
                         "alwaysDisplayInConsole":  false,
                         "clientAuthenticatorType":  "client-secret",
                         "redirectUris":  [
-                                             "https://stats-hunter.ru/*", "http://localhost:4200/*"
+                                             "https://example.com/*", "http://localhost:4200/*"
                                          ],
                         "webOrigins":  [
-                                           "https://stats-hunter.ru", "http://localhost:4200"
+                                           "https://example.com", "http://localhost:4200"
                                        ],
                         "notBefore":  0,
                         "bearerOnly":  false,

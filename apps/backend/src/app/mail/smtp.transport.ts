@@ -31,7 +31,7 @@ function dotStuff(value: string): string {
 }
 
 function buildMessage(msg: SmtpMessage): string {
-  const boundary = `----=_stats-hunter_${Date.now().toString(16)}`;
+  const boundary = `----=_app-template_${Date.now().toString(16)}`;
   const headers = [
     `From: ${msg.from}`,
     `To: ${msg.to}`,
@@ -39,7 +39,7 @@ function buildMessage(msg: SmtpMessage): string {
     'MIME-Version: 1.0',
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
     `Date: ${new Date().toUTCString()}`,
-    `Message-ID: <${Date.now()}.${process.pid}.stats-hunter@${hostname()}>`,
+    `Message-ID: <${Date.now()}.${process.pid}.app-template@${hostname()}>`,
     '',
   ].join('\r\n');
 

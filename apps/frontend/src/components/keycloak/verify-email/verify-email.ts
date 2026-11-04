@@ -8,7 +8,7 @@ import { KeycloakService } from '../../../app/keycloak/keycloak.service';
 import { NotificationService } from '../../../app/services/notification.service';
 
 @Component({
-  selector: 'sh-verify-email',
+  selector: 'app-verify-email',
   imports: [RouterModule, NzButtonModule, NzCardModule, NzIconModule],
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.scss',

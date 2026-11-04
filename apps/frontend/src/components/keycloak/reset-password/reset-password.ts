@@ -23,7 +23,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'sh-reset-password',
+  selector: 'app-reset-password',
   imports: [
     RouterModule,
     ReactiveFormsModule,

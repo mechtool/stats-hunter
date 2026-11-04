@@ -68,13 +68,13 @@ export class AuthController {
     private readonly credentials: CredentialsService,
   ) {
     this.baseUrl = config.get('KEYCLOAK_URL') ?? 'http://localhost:8080';
-    this.realm = config.get('KEYCLOAK_REALM') ?? 'stats-hunter';
+    this.realm = config.get('KEYCLOAK_REALM') ?? 'app-template';
     this.adminUser = config.get('KEYCLOAK_ADMIN') ?? 'admin';
     this.adminPassword = config.get('KEYCLOAK_ADMIN_PASSWORD') ?? 'admin';
     this.frontendUrl = config.get('FRONTEND_URL') ?? 'http://localhost:4200';
-    this.clientId = config.get('KEYCLOAK_CLIENT_ID') ?? 'stats-hunter-frontend';
+    this.clientId = config.get('KEYCLOAK_CLIENT_ID') ?? 'app-template-frontend';
     this.encryptionKey =
-      config.get('STATS_HUNTER_ENCRYPTION_KEY') ?? 'stats-hunter-dev-key';
+      config.get('APP_ENCRYPTION_KEY') ?? 'app-template-dev-key';
     this.resetTokenTtlMs = Number(
       config.get('RESET_TOKEN_TTL_MS') ?? 30 * 60 * 1000,
     );

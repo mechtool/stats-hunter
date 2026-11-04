@@ -18,8 +18,10 @@ export class MailService {
   private readonly from: string;
   private readonly webhookUrl: string | undefined;
   private readonly smtp: SmtpOptions | undefined;
+  private readonly appName: string;
 
   constructor(config: ConfigService) {
+    this.appName = config.get<string>('APP_NAME') ?? 'App Template';
     this.webhookUrl = config.get<string>('MAILER_WEBHOOK_URL');
 
     const smtpHost = config.get<string>('SMTP_HOST');
@@ -40,14 +42,14 @@ export class MailService {
     this.from =
       config.get<string>('MAILER_FROM') ??
       (smtpUser
-        ? `Stats Hunter <${smtpUser}>`
-        : 'Stats Hunter <no-reply@stats-hunter.local>');
+        ? `${this.appName} <${smtpUser}>`
+        : `${this.appName} <no-reply@localhost>`);
   }
 
   async sendPasswordResetEmail(to: string, link: string): Promise<void> {
     await this.send({
       to,
-      subject: 'Сброс пароля Stats Hunter',
+      subject: `Сброс пароля ${this.appName}`,
       text:
         `Перейдите по ссылке, чтобы задать новый пароль:\n${link}\n\n` +
         'Ссылка действительна 30 минут. Если вы не запрашивали сброс пароля, проигнорируйте это письмо.',
@@ -61,14 +63,14 @@ export class MailService {
   async sendEmailVerificationEmail(to: string, link: string): Promise<void> {
     await this.send({
       to,
-      subject: 'Подтверждение email — Stats Hunter',
+      subject: `Подтверждение email — ${this.appName}`,
       text:
         `Подтвердите ваш email, перейдя по ссылке:\n${link}\n\n` +
-        'Если вы не регистрировались в Stats Hunter, проигнорируйте это письмо.',
+        `Если вы не регистрировались в ${this.appName}, проигнорируйте это письмо.`,
       html:
         `<p>Подтвердите ваш email, перейдя по ссылке:</p>` +
         `<p><a href="${link}">${link}</a></p>` +
-        '<p>Если вы не регистрировались в Stats Hunter, проигнорируйте это письмо.</p>',
+        `<p>Если вы не регистрировались в ${this.appName}, проигнорируйте это письмо.</p>`,
     });
   }
 

@@ -8,7 +8,6 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { RateLimitGuard } from './auth/rate-limit.guard';
 import { CredentialsModule } from './credentials/credentials.module';
 import { MailModule } from './mail/mail.module';
-import { MarketplaceCredentialsModule } from './marketplace-credentials/marketplace-credentials.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -17,7 +16,6 @@ import { PrismaModule } from './prisma/prisma.module';
     CredentialsModule,
     MailModule,
     PrismaModule,
-    MarketplaceCredentialsModule,
   ],
   controllers: [AppController, AuthController],
   providers: [

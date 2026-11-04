@@ -59,7 +59,7 @@ describe('AuthController', () => {
       if (target.includes('/realms/master/protocol/openid-connect/token')) {
         return Promise.resolve(jsonResponse({ access_token: 'admin-token' }));
       }
-      if (target.includes('/realms/stats-hunter/protocol/openid-connect/token')) {
+      if (target.includes('/realms/app-template/protocol/openid-connect/token')) {
         return Promise.resolve(jsonResponse({ access_token: 'user-token' }));
       }
       if (target.includes('/users?search=')) {
@@ -93,7 +93,7 @@ describe('AuthController', () => {
       expect(upsertArg.where).toEqual({ email: 'user@example.com' });
       expect(upsertArg.create.email).toBe('user@example.com');
       expect(upsertArg.create.tokenHash).toEqual(expect.any(String));
-      expect(credentials.decrypt(upsertArg.create.passwordEncrypted, 'stats-hunter-dev-key')).toBe(
+      expect(credentials.decrypt(upsertArg.create.passwordEncrypted, 'app-template-dev-key')).toBe(
         'Secret123',
       );
       expect(mail.sendEmailVerificationEmail).toHaveBeenCalledTimes(1);
@@ -106,7 +106,7 @@ describe('AuthController', () => {
 
       // A newly registered user must NOT be enabled until email is verified.
       const createCalls = fetchMock.mock.calls.filter(([url]) =>
-        String(url).endsWith('/admin/realms/stats-hunter/users'),
+        String(url).endsWith('/admin/realms/app-template/users'),
       );
       expect(createCalls).toHaveLength(1);
       const createBody = JSON.parse(String((createCalls[0][1] as RequestInit).body));
@@ -151,7 +151,7 @@ describe('AuthController', () => {
         id: 'v-1',
         email: 'user@example.com',
         tokenHash: 'old-hash',
-        passwordEncrypted: credentials.encrypt('Secret123', 'stats-hunter-dev-key'),
+        passwordEncrypted: credentials.encrypt('Secret123', 'app-template-dev-key'),
         expiresAt: new Date(Date.now() + 60_000),
         usedAt: null,
         createdAt: new Date(),
@@ -195,7 +195,7 @@ describe('AuthController', () => {
         id: 'v-1',
         email: 'user@example.com',
         tokenHash: 'hash',
-        passwordEncrypted: credentials.encrypt('Secret123', 'stats-hunter-dev-key'),
+        passwordEncrypted: credentials.encrypt('Secret123', 'app-template-dev-key'),
         expiresAt: new Date(Date.now() + 60_000),
         usedAt: null,
         createdAt: new Date(),
@@ -216,7 +216,7 @@ describe('AuthController', () => {
 
       const verifyCalls = fetchMock.mock.calls.filter(
         ([url, init]) =>
-          /\/admin\/realms\/stats-hunter\/users\/user-1$/.test(String(url)) &&
+          /\/admin\/realms\/app-template\/users\/user-1$/.test(String(url)) &&
           (init as RequestInit).method === 'PUT',
       );
       expect(verifyCalls).toHaveLength(1);
@@ -257,7 +257,7 @@ describe('AuthController', () => {
 
       const deleteCalls = fetchMock.mock.calls.filter(
         ([url, init]) =>
-          /\/admin\/realms\/stats-hunter\/users\/user-1$/.test(String(url)) &&
+          /\/admin\/realms\/app-template\/users\/user-1$/.test(String(url)) &&
           (init as RequestInit).method === 'DELETE',
       );
       expect(deleteCalls).toHaveLength(1);

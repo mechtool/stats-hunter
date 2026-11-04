@@ -1,0 +1,9 @@
+# Override для edge-nginx: подключаем edge-конфиг приложения и host-gateway.
+# Не меняет исходный docker-compose edge-базы.
+# Применение: docker compose -f docker-compose.yc.yml -f app-template.edge.override.yml up -d client
+services:
+  client:
+    volumes:
+      - ./nginx/app.edge.conf:/etc/nginx/conf.d/app.edge.conf:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

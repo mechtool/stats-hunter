@@ -1,96 +1,74 @@
-# StatsHunter
+# App Template
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Переиспользуемый full-stack стартер: **Angular + NestJS + Keycloak + Prisma + PWA** в Nx-монорепо. Взять шаблон, переименовать под своё приложение и разрабатывать дальше.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Стек
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- **Frontend** — Angular 22, NG-ZORRO (Ant Design), RxJS + Signals, PWA (service worker), SSG-пререндеринг.
+- **Backend** — NestJS 11, Prisma 7 (PostgreSQL).
+- **Auth** — Keycloak 26 (JWT RS256): собственные формы логина/регистрации/подтверждения email/сброса пароля, глобальный JWT-guard, rate limiting, SMTP-письма.
+- **Infra** — Docker Compose (Postgres + Redis + Keycloak), импорт realm, nginx-конфиги.
 
-## Run tasks
+## Структура
 
-To run tasks with Nx use:
-
-```sh
-npx nx <target> <project-name>
+```
+apps/
+  frontend/        Angular SPA + PWA
+  backend/         NestJS API (/api)
+infra/
+  keycloak/        realm-export.json (импорт realm)
+  nginx/           inner/edge nginx-конфиги
+  postgres/        init-keycloak-db.sql
+prisma/            schema.prisma
+tools/
+  rename.mjs       переименование шаблона под новое приложение
+  serve.mjs        статический сервер
 ```
 
-For example:
+## Быстрый старт (локально)
 
 ```sh
-npx nx build myproject
+npm install
+cp .env.example .env          # подставить реальные значения
+docker compose up -d          # postgres + redis + keycloak
+npx prisma db push            # применить схему
+nx serve backend              # http://localhost:3000/api
+nx serve frontend             # http://localhost:4200
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Keycloak поднимается на `http://localhost:8080` (realm `app-template`), фронт логинится через него; бэкенд валидирует JWT по JWKS.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Аутентификация
 
-## Add new projects
+- Вход — Resource Owner Password Grant (`POST /token`).
+- Регистрация идёт через бэкенд (`/api/auth/register`), который через Keycloak Admin API создаёт пользователя в статусе «не подтверждён», шлёт письмо подтверждения, после подтверждения выдаёт токен.
+- Сброс пароля: `/api/auth/forgot-password` → письмо со ссылкой → `/api/auth/reset-password`.
+- Глобальный `JwtAuthGuard` защищает все эндпоинты, кроме помеченных `@Public()`.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+Параметры — в `.env`: `KEYCLOAK_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_ISSUER`, `KEYCLOAK_JWKS_URI`, `APP_ENCRYPTION_KEY`, `SMTP_*`, `FRONTEND_URL` и др. (см. `.env.example`).
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
+## Как сделать новое приложение
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
+Скопируйте шаблон и переименуйте:
 
 ```sh
-npx nx connect
+# имя + slug + Angular-префикс (dry-run показывает, что изменится)
+node tools/rename.mjs "My App" --slug my-app --prefix my --apply
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+Скрипт заменяет по всему репозиторию: отображаемое имя, slug, `@scope`, realm/client id Keycloak, селекторы Angular, ключи localStorage, имя БД, имена docker-compose. После — обновите домены:
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- `apps/frontend/src/environments/environment.prod.ts` (URL Keycloak);
+- `infra/keycloak/realm-export.json` (redirectUris/webOrigins);
+- `infra/nginx/app-template.edge.conf.example` → свой edge-конфиг;
+- `.env` из `.env.example`.
 
-### Step 2
+## PWA / Service Worker
 
-Use the following command to configure a CI workflow for your workspace:
+Service worker включается в production-сборке (`apps/frontend/ngsw-config.json`), регистрируется в `apps/frontend/src/main.ts`. Манифест и иконки — в `apps/frontend/public/`. SSG-пререндеринг генерирует статический вывод `browser/`, отдаётся nginx-ом (конфиг с проксированием `/api` и правильным кэшированием SW).
 
-```sh
-npx nx g ci-workflow
-```
+## Известный техдолг
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- Вход использует ROPC, а JWT хранится в `localStorage` — для production рассмотрите Authorization Code + PKCE и httpOnly-cookie.
+- Регистрация использует высокопривилегированные `KEYCLOAK_ADMIN`-креды — замените на отдельного сервисного пользователя.
+- Redis объявлен в compose, но бэкенд его пока не использует (задел под BullMQ).

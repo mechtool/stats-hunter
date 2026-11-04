@@ -1,3 +1,3 @@
--- Отдельная база для Keycloak (база приложения — stats_hunter).
+-- Отдельная база для Keycloak (база приложения — app_template).
 -- Выполняется только на свежем томе Postgres (docker-entrypoint-initdb.d).
-CREATE DATABASE keycloak OWNER stats_hunter;
+CREATE DATABASE keycloak OWNER app_template;

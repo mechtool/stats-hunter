@@ -25,11 +25,11 @@ export class JwtAuthGuard implements CanActivate {
   ) {
     this.issuer =
       config.get<string>('KEYCLOAK_ISSUER') ??
-      'http://localhost:8080/realms/stats-hunter';
+      'http://localhost:8080/realms/app-template';
     this.jwks = new JwksClient({
       jwksUri:
         config.get<string>('KEYCLOAK_JWKS_URI') ??
-        'http://localhost:8080/realms/stats-hunter/protocol/openid-connect/certs',
+        'http://localhost:8080/realms/app-template/protocol/openid-connect/certs',
     });
   }
 

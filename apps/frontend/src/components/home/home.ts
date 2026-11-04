@@ -5,7 +5,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { KeycloakService } from '../../app/keycloak/keycloak.service';
 
 @Component({
-  selector: 'sh-home',
+  selector: 'app-home',
   imports: [NzButtonModule, NzCardModule],
   templateUrl: './home.html',
   styleUrl: './home.scss',

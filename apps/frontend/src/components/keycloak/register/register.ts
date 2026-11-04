@@ -23,7 +23,7 @@ function passwordsMatch(group: AbstractControl): ValidationErrors | null {
 }
 
 @Component({
-  selector: 'sh-register',
+  selector: 'app-register',
   imports: [
     RouterModule,
     ReactiveFormsModule,

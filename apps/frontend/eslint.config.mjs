@@ -14,7 +14,7 @@ export default [
                 "error",
                 {
                     type: "attribute",
-                    prefix: "sh",
+                    prefix: "app",
                     style: "camelCase"
                 }
             ],
@@ -22,7 +22,7 @@ export default [
                 "error",
                 {
                     type: "element",
-                    prefix: "sh",
+                    prefix: "app",
                     style: "kebab-case"
                 }
             ]

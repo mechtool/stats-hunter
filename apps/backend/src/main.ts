@@ -1,5 +1,5 @@
 /**
- * stats-hunter API — Phase 0 skeleton.
+ * app-template API — reusable NestJS starter.
  * Global prefix: /api. Default port: 3000.
  */
 import { Logger } from '@nestjs/common';
@@ -41,7 +41,7 @@ async function bootstrap() {
   }
 
   Logger.log(
-    `stats-hunter API is running on: http://localhost:${port}/${globalPrefix}`,
+    `app-template API is running on: http://localhost:${port}/${globalPrefix}`,
   );
 }
 

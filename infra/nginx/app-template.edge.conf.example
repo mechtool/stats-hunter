@@ -1,43 +1,44 @@
 # ========================================================
-# stats-hunter — edge server blocks (served by it-client nginx, SNI).
-# Подключается отдельным conf-файлом, не трогая nginx.yc.conf.
+# app-template — edge nginx (пример для VPS с SNI).
+# Скопируйте в app.edge.conf и подставьте реальные домены
+# и пути сертификатов Let's Encrypt.
 # ========================================================
 
-# ---- stats-hunter.ru / www.stats-hunter.ru :80 -> канонический apex ----
+# ---- example.com / www.example.com :80 -> канонический apex ----
 server {
     listen 80;
-    server_name stats-hunter.ru www.stats-hunter.ru;
+    server_name example.com www.example.com;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
     location / {
-        return 301 https://stats-hunter.ru$request_uri;
+        return 301 https://example.com$request_uri;
     }
 }
 
-# ---- auth.stats-hunter.ru :80 ----
+# ---- auth.example.com :80 ----
 server {
     listen 80;
-    server_name auth.stats-hunter.ru;
+    server_name auth.example.com;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
 
     location / {
-        return 301 https://auth.stats-hunter.ru$request_uri;
+        return 301 https://auth.example.com$request_uri;
     }
 }
 
-# ---- stats-hunter.ru :443 (фронт + /api) ----
+# ---- example.com :443 (фронт + /api) ----
 server {
     listen 443 ssl http2;
-    server_name stats-hunter.ru;
+    server_name example.com;
 
-    ssl_certificate     /etc/letsencrypt/live/stats-hunter.ru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/stats-hunter.ru/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
@@ -58,13 +59,13 @@ server {
     }
 }
 
-# ---- auth.stats-hunter.ru :443 (Keycloak) ----
+# ---- auth.example.com :443 (Keycloak) ----
 server {
     listen 443 ssl http2;
-    server_name auth.stats-hunter.ru;
+    server_name auth.example.com;
 
-    ssl_certificate     /etc/letsencrypt/live/auth.stats-hunter.ru/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/auth.stats-hunter.ru/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/auth.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/auth.example.com/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;

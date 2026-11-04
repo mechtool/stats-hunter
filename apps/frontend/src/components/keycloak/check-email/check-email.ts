@@ -8,7 +8,7 @@ import { NotificationService } from '../../../app/services/notification.service'
 const RESEND_COOLDOWN_SECONDS = 60;
 
 @Component({
-  selector: 'sh-check-email',
+  selector: 'app-check-email',
   imports: [RouterModule, NzButtonModule, NzCardModule],
   templateUrl: './check-email.html',
   styleUrl: './check-email.scss',

@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-const TOKEN_KEY = 'stats-hunter.access_token';
-const EMAIL_KEY = 'stats-hunter.email';
+const TOKEN_KEY = 'app-template.access_token';
+const EMAIL_KEY = 'app-template.email';
 
 /**
  * Custom login/registration against Keycloak, without redirecting to the
