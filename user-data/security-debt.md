@@ -60,6 +60,7 @@
 
 ## Прод-долг (актуально)
 
+- **DNS для доставляемости почты (Postbox)**: DKIM уже есть (Easy DKIM, обязательный минимум). Осталось добавить SPF TXT на корне домена `v=spf1 include:spf.postbox.yandexcloud.net ~all` (ровно одна SPF-запись) и DMARC `_dmarc.stats-hunter.ru` → `v=DMARC1; p=none`. Рекомендуется для надёжной доставки/защиты от спуфинга, не блокирует отправку.
 - ~~PKCE + httpOnly-cookie~~ ✅ закрыто (Вариант A — BFF + httpOnly-кука, 2026-11-08).
 - **Lockbox** для `STATS_HUNTER_ENCRYPTION_KEY` и Ozon-ключей.
 - Перевод `svc-user-admin` (Admin API) на `client_credentials` + `serviceAccountsEnabled`.
