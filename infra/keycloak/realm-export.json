@@ -909,7 +909,7 @@
                         "consentRequired":  false,
                         "standardFlowEnabled":  true,
                         "implicitFlowEnabled":  false,
-                        "directAccessGrantsEnabled":  true,
+                        "directAccessGrantsEnabled":  false,
                         "serviceAccountsEnabled":  false,
                         "publicClient":  true,
                         "frontchannelLogout":  false,
@@ -923,6 +923,53 @@
 
                                                                },
                         "fullScopeAllowed":  true,
+                        "nodeReRegistrationTimeout":  -1,
+                        "defaultClientScopes":  [
+                                                    "web-origins",
+                                                    "acr",
+                                                    "profile",
+                                                    "roles",
+                                                    "basic",
+                                                    "email"
+                                                ],
+                        "optionalClientScopes":  [
+                                                     "address",
+                                                     "phone",
+                                                     "organization",
+                                                     "offline_access",
+                                                     "microprofile-jwt"
+                                                 ]
+                    },
+                    {
+                        "id":  "e7b1f5a2-4c3d-4b6e-9f0a-2d4c8b1e7f9a",
+                        "clientId":  "stats-hunter-bff",
+                        "surrogateAuthRequired":  false,
+                        "enabled":  true,
+                        "alwaysDisplayInConsole":  false,
+                        "clientAuthenticatorType":  "client-secret",
+                        "redirectUris":  [
+
+                                         ],
+                        "webOrigins":  [
+
+                                       ],
+                        "notBefore":  0,
+                        "bearerOnly":  false,
+                        "consentRequired":  false,
+                        "standardFlowEnabled":  false,
+                        "implicitFlowEnabled":  false,
+                        "directAccessGrantsEnabled":  true,
+                        "serviceAccountsEnabled":  false,
+                        "publicClient":  false,
+                        "frontchannelLogout":  false,
+                        "protocol":  "openid-connect",
+                        "attributes":  {
+
+                                       },
+                        "authenticationFlowBindingOverrides":  {
+
+                                                               },
+                        "fullScopeAllowed":  false,
                         "nodeReRegistrationTimeout":  -1,
                         "defaultClientScopes":  [
                                                     "web-origins",

@@ -1,7 +1,7 @@
 # stats-hunter — Handoff (state snapshot)
 
 > Назначение: быстро восстановить контекст. Живое состояние файлов/git — авторитетно.
-> Последнее обновление: 2026-11-04 (systemd, сервисный пользователь, www, шаблон).
+> Последнее обновление: 2026-11-08 (BFF-аутентификация: httpOnly-кука + серверная сессия).
 
 ## Где мы
 `stats-hunter.ru` в проде на ВМ (158.160.204.124) с HTTPS. Прод на коммите `5f2ba5e` (ветка `master`). В GitHub также ветка `template` (шаблон `app-template`) и тег `stats-hunter-deployed` (`6f76c89`).
@@ -27,7 +27,9 @@ sudo systemctl restart stats-hunter-backend.service
 Фронт раздаётся volume-mounted (`dist/apps/frontend/browser`) — пересоздание nginx не нужно.
 
 ## Auth / Keycloak (актуально)
-- Вход: ROPC (password grant) + JWT в localStorage (техдолг → PKCE + httpOnly-cookie).
+- Вход: **BFF + httpOnly-кука** (Вариант A, 2026-11-08). ROPC выполняет бэкенд через confidential-клиент `stats-hunter-bff`; токены живут в БД (`user_sessions`), браузер получает только куку `stats-hunter.session`.
+- Эндпоинты: `POST /api/auth/login`, `GET /api/auth/me`, `POST /api/auth/logout` (SessionController); `verify-email` тоже создаёт сессию.
+- `JwtAuthGuard` читает куку + прозрачный refresh; fallback на `Authorization: Bearer` сохранён.
 - Регистрация/сброс пароля — через **сервисного пользователя** `svc-user-admin` (realm `stats-hunter`, роли `manage-users`/`view-users`), НЕ через admin.
 - Keycloak admin (master) пароль сменён; консоль `auth.stats-hunter.ru`.
 - Пароли: admin и svc-user — в `.env` на ВМ + в `.codewhale/handoff.md` (локально).
@@ -40,6 +42,7 @@ sudo systemctl restart stats-hunter-backend.service
 - На ВМ нужен npm 11.16 (npm 10 несовместим с lock).
 
 ## Долг (см. `user-data/security-debt.md`)
-- PKCE + httpOnly-cookie (главный критичный пункт).
+- Full OIDC (Authorization Code + PKCE / MFA / соц-вход) — опционально, если потребуются (Вариант B).
 - Lockbox для `STATS_HUNTER_ENCRYPTION_KEY` + Ozon-ключей.
 - 55 moderate (minimatch) — апгрейд Nx/ESLint.
+- Перевод `svc-user-admin` на `client_credentials`.

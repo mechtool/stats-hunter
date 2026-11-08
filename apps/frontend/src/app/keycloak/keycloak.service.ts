@@ -1,72 +1,28 @@
-import { Injectable, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { environment } from '../../environments/environment';
-
-const TOKEN_KEY = 'stats-hunter.access_token';
-const EMAIL_KEY = 'stats-hunter.email';
 
 /**
- * Custom login/registration against Keycloak, without redirecting to the
- * hosted Keycloak pages: login uses Resource Owner Password grant, registration
- * goes through our backend (which uses the Keycloak Admin API).
+ * Auth through our backend (BFF). The browser never talks to Keycloak directly
+ * and never stores tokens: the backend holds the Keycloak tokens in a server
+ * session and hands back only an httpOnly cookie. This service keeps the
+ * current user's email in memory and exposes the session state to the UI.
  */
 @Injectable({ providedIn: 'root' })
 export class KeycloakService {
-  private accessToken: string | null =
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem(TOKEN_KEY)
-      : null;
-
-  private email: string | null =
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem(EMAIL_KEY)
-      : null;
+  private email: string | null = null;
+  private sessionLoaded = false;
 
   private readonly http = inject(HttpClient);
+  private readonly platformId = inject(PLATFORM_ID);
 
   async login(email: string, password: string): Promise<void> {
-    const body = new URLSearchParams({
-      grant_type: 'password',
-      client_id: environment.keycloakClientId,
-      username: email,
-      password,
-      scope: 'openid',
-    });
-
-    const res = await fetch(
-      `${environment.keycloakUrl}/protocol/openid-connect/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body,
-    });
-
-    if (!res.ok) {
-      let message = 'Неверный email или пароль';
-      try {
-        const data = (await res.json()) as {
-          error?: string;
-          error_description?: string;
-        };
-        const description = (data.error_description ?? '').toLowerCase();
-        if (description.includes('not fully set up')) {
-          message = 'Аккаунт не полностью настроен';
-        } else if (description.includes('invalid user credentials')) {
-          message = 'Неверный email или пароль';
-        } else if (data.error_description) {
-          message = data.error_description;
-        }
-      } catch {
-        // keep the generic message when the response body cannot be parsed
-      }
-      throw new Error(message);
-    }
-
-    const data = (await res.json()) as { access_token: string };
-    this.accessToken = data.access_token;
-    this.email = email;
-    localStorage.setItem(TOKEN_KEY, data.access_token);
-    localStorage.setItem(EMAIL_KEY, email);
+    const res = await firstValueFrom(
+      this.http.post<{ email: string }>('/api/auth/login', { email, password }),
+    );
+    this.email = res.email;
+    this.sessionLoaded = true;
   }
 
   async register(email: string, password: string): Promise<void> {
@@ -83,15 +39,10 @@ export class KeycloakService {
 
   async verifyEmail(token: string): Promise<void> {
     const res = await firstValueFrom(
-      this.http.post<{ access_token: string; email: string }>(
-        '/api/auth/verify-email',
-        { token },
-      ),
+      this.http.post<{ email: string }>('/api/auth/verify-email', { token }),
     );
-    this.accessToken = res.access_token;
     this.email = res.email;
-    localStorage.setItem(TOKEN_KEY, res.access_token);
-    localStorage.setItem(EMAIL_KEY, res.email);
+    this.sessionLoaded = true;
   }
 
   async cancelRegistration(email: string): Promise<void> {
@@ -112,19 +63,40 @@ export class KeycloakService {
     );
   }
 
-  logout(): void {
-    this.accessToken = null;
+  async logout(): Promise<void> {
+    try {
+      await firstValueFrom(this.http.post('/api/auth/logout', {}));
+    } catch {
+      // Ignore network/server errors — local state must still be cleared.
+    }
     this.email = null;
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(EMAIL_KEY);
+    this.sessionLoaded = true;
+  }
+
+  /** Resolves the session once per app lifetime via the httpOnly cookie. */
+  async loadSession(): Promise<void> {
+    if (this.sessionLoaded) {
+      return;
+    }
+    if (!isPlatformBrowser(this.platformId)) {
+      this.sessionLoaded = true;
+      return;
+    }
+
+    try {
+      const res = await firstValueFrom(
+        this.http.get<{ email: string | null }>('/api/auth/me'),
+      );
+      this.email = res.email ?? null;
+    } catch {
+      this.email = null;
+    } finally {
+      this.sessionLoaded = true;
+    }
   }
 
   isAuthenticated(): boolean {
-    return !!this.accessToken;
-  }
-
-  get token(): string | null {
-    return this.accessToken;
+    return !!this.email;
   }
 
   get userEmail(): string | null {

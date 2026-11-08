@@ -1,7 +1,10 @@
 # stats-hunter — Security / Tech Debt (к ликвидации)
 
 > Живой список уязвимостей и техдолга. Фиксируем сейчас, закрываем позже — перед продакшеном.
-> Последнее обновление: 2026-11-04.
+> Последнее обновление: 2026-11-08.
+
+## Недавно закрыто (2026-11-08)
+- **BFF + httpOnly-кука (Вариант A)** — вход больше не ROPC-из-браузера и не localStorage. Пароль уходит на наш бэкенд, бэкенд делает серверный ROPC через confidential-клиент `stats-hunter-bff`; Keycloak-токены хранятся в БД (`user_sessions`) зашифрованными (AES-256-GCM), браузер получает только httpOnly-куку `stats-hunter.session`. Реализованы `login`/`me`/`logout`, прозрачный refresh в `JwtAuthGuard`, `verify-email` через сессию. Проверено локально E2E (login → Set-Cookie → /me 200 → logout → 401).
 
 ## Недавно закрыто (2026-11-04)
 - **systemd для бэкенда**: `/etc/systemd/system/stats-hunter-backend.service` (active+enabled, `Restart=always`), `nohup` убран.
@@ -22,13 +25,16 @@
 
 ## Критично (осталось)
 
-### ⭐ Крупный пункт: PKCE + httpOnly-cookie (обдумать — решение UX за пользователем)
-Сейчас вход = ROPC (прямой `POST /token` с паролем из браузера) + JWT в `localStorage` (`stats-hunter.access_token`).
+### ✅ Закрыто: PKCE + httpOnly-cookie (реализован «Вариант A» из `plan-auth-bff.md`)
+Было: вход = ROPC (прямой `POST /token` с паролем из браузера) + JWT в `localStorage` (`stats-hunter.access_token`).
 
-- **Вариант A — полный (правильный).** Authorization Code + PKCE через Keycloak: логин через страницу Keycloak (редирект), токены в httpOnly-cookie (BFF). Убирает и password grant, и localStorage. Кастомная форма логина уходит (может стать «лендингом» с кнопкой «Войти»).
-- **Вариант B — частичный.** Кастомная форма остаётся: email/пароль → бэкенд, бэкенд делает password grant и ставит httpOnly-cookie. Убирает localStorage и пароль из браузера, но это всё ещё ROPC.
+Стало (Вариант A, кастомная форма входа сохранена):
+- Браузер → `POST /api/auth/login` (наш бэкенд).
+- Бэкенд → Keycloak `grant_type=password` сервер-к-серверу через **confidential**-клиент `stats-hunter-bff` (`client_secret` в `.env`).
+- Токены шифруются и хранятся в `user_sessions`; браузер получает httpOnly-куку сессии.
+- Guard читает куку, прозрачно рефрешит access; `logout` чистит сессию/куку.
 
-Объём: фронт (login + keycloak-js/manual OIDC), бэк (callback + cookie + guard читает cookie), realm (PKCE + redirect URI).
+Осталось опционально — **полный OIDC / PKCE (Вариант B)**: Authorization Code + PKCE через Keycloak (редирект на страницу Keycloak или кастомную тему), MFA, соц-вход. Требует решения по UX (своя форма vs тема Keycloak). Делать только если нужны MFA/соц-вход.
 
 - **`STATS_HUNTER_ENCRYPTION_KEY` — dev-заглушка.** Нужен реальный мастер-ключ из secret manager (Yandex Lockbox), ротация.
 - **Ozon API-ключи лежат в `.env`** (плейнтекст) — первичные креды площадок перевести в Lockbox.
@@ -54,8 +60,9 @@
 
 ## Прод-долг (актуально)
 
-- **PKCE + httpOnly-cookie** — главный оставшийся критичный пункт (см. «Критично»).
+- ~~PKCE + httpOnly-cookie~~ ✅ закрыто (Вариант A — BFF + httpOnly-кука, 2026-11-08).
 - **Lockbox** для `STATS_HUNTER_ENCRYPTION_KEY` и Ozon-ключей.
+- Перевод `svc-user-admin` (Admin API) на `client_credentials` + `serviceAccountsEnabled`.
 - industrial-telemetry: возможно потеряны `DADATA_API_KEY`/`WEBHOOK_SECRET` (при необходимости восстановить из `~/.bash_history`).
 - ~~www.stats-hunter.ru в сертификате~~ ✅ сделано.
 - ~~Keycloak admin admin/admin~~ ✅ сменён.

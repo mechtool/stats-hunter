@@ -18,8 +18,8 @@ export class HomeComponent {
     return this.keycloak.userEmail;
   }
 
-  logout(): void {
-    this.keycloak.logout();
+  async logout(): Promise<void> {
+    await this.keycloak.logout();
     this.router.navigate(['/login']);
   }
 }

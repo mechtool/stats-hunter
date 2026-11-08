@@ -54,12 +54,13 @@
 - **Фаза 5 — единый поиск, центр отчётов, экспорт CSV/Excel, фоновые синхронизации.**
 
 ## 6. Аутентификация (Keycloak)
-- Keycloak — identity provider; фронт подключается по OIDC (Authorization Code + PKCE); бэк валидирует JWT.
-- Роли: `admin`, `user`. У каждого пользователя свои ключи площадок (шифрование at rest).
+- Keycloak — identity provider; бэк валидирует JWT (RS256) по JWKS.
+- Реализована **BFF-схема** (Вариант A, 2026-11-08): браузер → наш `/api/auth/*`; бэкенд делает серверный ROPC через confidential-клиент `stats-hunter-bff`, хранит Keycloak-токены в БД (`user_sessions`, AES-256-GCM) и выдаёт браузеру только httpOnly-куку. Полный OIDC (Authorization Code + PKCE / MFA) — опциональный Вариант B на будущее.
+- Роли: `admin`, `user` (заявлены; RBAC end-to-end не реализован). У каждого пользователя свои ключи площадок (шифрование at rest).
 - Keycloak запускается через Docker (на хосте Java не установлена).
 
 ## 7. Безопасность и управление пользователями (актуальные практики)
-- OIDC + PKCE на фронте; JWT (RS256) с проверкой `iss`/`aud`/срока на бэке.
+- BFF-аутентификация: httpOnly-кука сессии + серверная сессия в БД; JWT (RS256) с проверкой `iss`/срока на бэке.
 - API-ключи площадок: AES-256-GCM, мастер-ключ из secret manager, никогда не попадают в браузер.
 - RBAC, rate limiting, валидация ввода, audit log, CORS whitelist, защита от SSRF при вызовах внешних API.
 - Секреты — через env / secret manager (Яндекс Облако Lockbox).
@@ -79,6 +80,7 @@
 - [открыто] Дизайн форм входа/регистрации (Pixso).
 
 ## 9. Текущий статус
+- **BFF-аутентификация (2026-11-08)**: вход через бэкенд + httpOnly-кука (Вариант A), серверная сессия `user_sessions`, эндпоинты `login`/`me`/`logout`, прозрачный refresh. Локально проверено E2E. Детали: `plan-auth-bff.md`, `architecture.md`.
 - **Фаза 0 завершена** (2026-10-31): Nx 24 + Angular 22 + NestJS, NG-ZORRO 22.1.2 (светлая тема), страница входа-заглушка.
 - Проверено: `nx build` (frontend + backend), `nx lint`, `nx test`, живой `/api/health` → 200.
 - Стек: Angular 22.2.4, NG-ZORRO 22.1.2, @angular/cdk 22.2.5, NestJS (webpack), TypeScript 6.0.3, Nx 24.0.3.

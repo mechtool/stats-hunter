@@ -32,6 +32,13 @@ describe('AuthController', () => {
     get: jest.fn((_key: string, fallback?: string) => fallback),
   };
   const credentials = new CredentialsService();
+  const sessions = {
+    create: jest.fn(),
+    cookieOptions: jest.fn(),
+  };
+  const tokens = {
+    passwordGrant: jest.fn(),
+  };
 
   const fetchMock = jest.fn();
   const originalFetch = globalThis.fetch;
@@ -46,6 +53,8 @@ describe('AuthController', () => {
       prisma as never,
       mail as never,
       credentials,
+      sessions as never,
+      tokens as never,
     );
   });
 
@@ -182,7 +191,7 @@ describe('AuthController', () => {
   });
 
   describe('verify-email', () => {
-    it('enables the user, issues a token and marks the link used', async () => {
+    it('enables the user, creates a session and marks the link used', async () => {
       mockAdminToken([
         {
           id: 'user-1',
@@ -201,14 +210,42 @@ describe('AuthController', () => {
         createdAt: new Date(),
       });
       prisma.emailVerificationToken.update.mockResolvedValue({});
-
-      const result = await controller.verifyEmail({ token: 'valid-token' });
-
-      expect(result).toEqual({
-        ok: true,
-        email: 'user@example.com',
-        access_token: 'user-token',
+      tokens.passwordGrant.mockResolvedValue({
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        expiresIn: 300,
       });
+      sessions.create.mockResolvedValue({
+        raw: 'raw-session',
+        subject: 'user-1',
+        email: 'user@example.com',
+        accessToken: 'access-token',
+        refreshToken: 'refresh-token',
+        expiresAt: new Date(),
+      });
+      sessions.cookieOptions.mockReturnValue({
+        secure: false,
+        sameSite: 'lax',
+        maxAgeSeconds: 604800,
+      });
+      const res = { setHeader: jest.fn() };
+
+      const result = await controller.verifyEmail(
+        { token: 'valid-token' },
+        res as never,
+      );
+
+      expect(result).toEqual({ ok: true, email: 'user@example.com' });
+      expect(tokens.passwordGrant).toHaveBeenCalledWith(
+        'user@example.com',
+        'Secret123',
+      );
+      expect(sessions.create).toHaveBeenCalledWith(
+        'user-1',
+        'user@example.com',
+        expect.objectContaining({ accessToken: 'access-token' }),
+      );
+      expect(res.setHeader).toHaveBeenCalledWith('Set-Cookie', expect.any(String));
       expect(prisma.emailVerificationToken.update).toHaveBeenCalledWith({
         where: { id: 'v-1' },
         data: { usedAt: expect.any(Date) },
@@ -229,7 +266,7 @@ describe('AuthController', () => {
       prisma.emailVerificationToken.findUnique.mockResolvedValue(null);
 
       await expect(
-        controller.verifyEmail({ token: 'bad-token' }),
+        controller.verifyEmail({ token: 'bad-token' }, {} as never),
       ).rejects.toThrow(BadRequestException);
     });
   });

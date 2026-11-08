@@ -5,15 +5,20 @@ import {
   Controller,
   NotFoundException,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import { CredentialsService } from '../credentials/credentials.service';
 import { MailService } from '../mail/mail.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { serializeSessionCookie } from './cookie';
+import { KeycloakTokenService, TokenSet } from './keycloak-token.service';
 import { Public } from './public.decorator';
 import { RateLimitGuard } from './rate-limit.guard';
+import { SessionService } from './session.service';
 
 interface RegisterDto {
   email: string;
@@ -57,7 +62,6 @@ export class AuthController {
   private readonly serviceUser: string;
   private readonly servicePassword: string;
   private readonly frontendUrl: string;
-  private readonly clientId: string;
   private readonly encryptionKey: string;
   private readonly resetTokenTtlMs: number;
   private readonly verificationTtlMs: number;
@@ -67,13 +71,14 @@ export class AuthController {
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
     private readonly credentials: CredentialsService,
+    private readonly sessions: SessionService,
+    private readonly tokens: KeycloakTokenService,
   ) {
     this.baseUrl = config.get('KEYCLOAK_URL') ?? 'http://localhost:8080';
     this.realm = config.get('KEYCLOAK_REALM') ?? 'stats-hunter';
     this.serviceUser = config.get('KEYCLOAK_SERVICE_USER') ?? 'svc-user-admin';
     this.servicePassword = config.get('KEYCLOAK_SERVICE_PASSWORD') ?? '';
     this.frontendUrl = config.get('FRONTEND_URL') ?? 'http://localhost:4200';
-    this.clientId = config.get('KEYCLOAK_CLIENT_ID') ?? 'stats-hunter-frontend';
     this.encryptionKey =
       config.get('STATS_HUNTER_ENCRYPTION_KEY') ?? 'stats-hunter-dev-key';
     this.resetTokenTtlMs = Number(
@@ -141,11 +146,10 @@ export class AuthController {
   }
 
   @Post('verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto): Promise<{
-    ok: boolean;
-    email: string;
-    access_token: string;
-  }> {
+  async verifyEmail(
+    @Body() dto: VerifyEmailDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ ok: boolean; email: string }> {
     const token = (dto.token ?? '').trim();
     if (!token) {
       throw new BadRequestException('Токен подтверждения обязателен');
@@ -173,14 +177,24 @@ export class AuthController {
     );
 
     await this.setUserVerification(user.id, true);
-    const access_token = await this.issuePasswordToken(pending.email, password);
+    let tokenSet: TokenSet;
+    try {
+      tokenSet = await this.tokens.passwordGrant(pending.email, password);
+    } catch {
+      throw new BadRequestException('Не удалось выполнить вход');
+    }
+    const session = await this.sessions.create(user.id, pending.email, tokenSet);
+    res.setHeader(
+      'Set-Cookie',
+      serializeSessionCookie(session.raw, this.sessions.cookieOptions()),
+    );
 
     await this.prisma.emailVerificationToken.update({
       where: { id: pending.id },
       data: { usedAt: new Date() },
     });
 
-    return { ok: true, email: pending.email, access_token };
+    return { ok: true, email: pending.email };
   }
 
   @Post('cancel-registration')
@@ -353,32 +367,6 @@ export class AuthController {
     if (!res.ok && res.status !== 404) {
       throw new BadRequestException('Не удалось отменить регистрацию');
     }
-  }
-
-  private async issuePasswordToken(
-    email: string,
-    password: string,
-  ): Promise<string> {
-    const body = new URLSearchParams({
-      grant_type: 'password',
-      client_id: this.clientId,
-      username: email,
-      password,
-      scope: 'openid',
-    });
-    const res = await fetch(
-      `${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
-      },
-    );
-    if (!res.ok) {
-      throw new BadRequestException('Не удалось выполнить вход');
-    }
-    const data = (await res.json()) as { access_token: string };
-    return data.access_token;
   }
 
   private async saveVerificationToken(

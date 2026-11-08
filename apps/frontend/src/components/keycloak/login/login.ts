@@ -6,6 +6,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -63,8 +64,10 @@ export class LoginComponent {
       this.notification.success('Вход выполнен', 'Вы успешно вошли.');
       this.router.navigate(['/home']);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Неверный email или пароль';
+      let message = 'Неверный email или пароль';
+      if (error instanceof HttpErrorResponse) {
+        message = error.error?.message ?? message;
+      }
       this.notification.error('Ошибка входа', message);
     }
   }

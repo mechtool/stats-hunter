@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { KeycloakTokenService } from './auth/keycloak-token.service';
+import { SessionService } from './auth/session.service';
 
 describe('AppController', () => {
   let app: TestingModule;
@@ -14,6 +16,8 @@ describe('AppController', () => {
         AppService,
         JwtAuthGuard,
         { provide: ConfigService, useValue: { get: () => undefined } },
+        { provide: SessionService, useValue: {} },
+        { provide: KeycloakTokenService, useValue: {} },
       ],
     }).compile();
   });
