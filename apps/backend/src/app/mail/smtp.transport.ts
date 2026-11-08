@@ -30,6 +30,15 @@ function dotStuff(value: string): string {
   return value.replace(/^\./gm, '..');
 }
 
+/**
+ * Extract the bare email address from a `Name <addr>` header value.
+ * Falls back to the raw string when no angle-bracket address is present.
+ */
+function extractAddress(from: string): string {
+  const match = from.match(/<([^>]+)>/);
+  return (match ? match[1] : from).trim();
+}
+
 function buildMessage(msg: SmtpMessage): string {
   const boundary = `----=_stats-hunter_${Date.now().toString(16)}`;
   const headers = [
@@ -155,8 +164,14 @@ function expectCode(response: { code: number; message: string }, expected: numbe
 }
 
 /**
- * Minimal SMTP client over implicit TLS (e.g. Yandex smtp.yandex.ru:465).
- * Uses AUTH LOGIN and multipart/alternative MIME. No external dependencies.
+ * Minimal SMTP client over implicit TLS (e.g. postbox.cloud.yandex.net:465
+ * or Yandex Mail smtp.yandex.ru:465). Uses AUTH LOGIN and
+ * multipart/alternative MIME. No external dependencies.
+ *
+ * The authenticated mailbox (`options.user`) is used only for AUTH; the
+ * envelope sender is derived from `message.from`. They differ for services
+ * such as Yandex Cloud Postbox, where the SMTP login is an API-key id rather
+ * than an email address.
  */
 export async function sendSmtpMail(
   options: SmtpOptions,
@@ -180,7 +195,8 @@ export async function sendSmtpMail(
     connection.write(base64(options.pass));
     expectCode(await connection.readResponse(), 235);
 
-    connection.write(`MAIL FROM:<${options.user}>`);
+    const envelopeFrom = extractAddress(message.from) || options.user;
+    connection.write(`MAIL FROM:<${envelopeFrom}>`);
     expectCode(await connection.readResponse(), 250);
 
     connection.write(`RCPT TO:<${message.to}>`);

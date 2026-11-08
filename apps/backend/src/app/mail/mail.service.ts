@@ -6,8 +6,10 @@ import { sendSmtpMail, SmtpOptions } from './smtp.transport';
  * Transactional-mail transport for auth flows.
  *
  * Precedence:
- * 1. SMTP (SMTP_HOST/SMTP_USER/SMTP_PASS) — real delivery, e.g. Yandex Mail
- *    on smtp.yandex.ru:465 with an application password.
+ * 1. SMTP (SMTP_HOST/SMTP_USER/SMTP_PASS) — real delivery, e.g. Yandex Cloud
+ *    Postbox on postbox.cloud.yandex.net:465 (SMTP_USER = API-key id,
+ *    SMTP_PASS = API-key secret) or Yandex Mail on smtp.yandex.ru:465 with an
+ *    application password.
  * 2. MAILER_WEBHOOK_URL — an HTTP bridge that accepts
  *    `{ from, to, subject, text, html }`.
  * 3. Log the reset link to the backend console (dev fallback).
@@ -35,8 +37,10 @@ export class MailService {
       };
     }
 
-    // Yandex (and most providers) require the From address to match the
-    // authenticated mailbox, so default to SMTP_USER when it is available.
+    // From must belong to the verified sending domain. For Yandex Mail the
+    // authenticated mailbox is the From address, so default to SMTP_USER when
+    // available; for Postbox SMTP_USER is an API-key id, so MAILER_FROM must be
+    // set explicitly to a verified-domain address (e.g. no-reply@stats-hunter.ru).
     this.from =
       config.get<string>('MAILER_FROM') ??
       (smtpUser
