@@ -7,6 +7,8 @@ import { NotificationService } from '../../../app/services/notification.service'
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
+type CheckEmailMode = 'verify' | 'reset';
+
 @Component({
   selector: 'sh-check-email',
   imports: [RouterModule, NzButtonModule, NzCardModule],
@@ -20,6 +22,7 @@ export class CheckEmailComponent implements OnInit, OnDestroy {
   private readonly notification = inject(NotificationService);
 
   email = '';
+  mode: CheckEmailMode = 'verify';
   remainingSeconds = signal(RESEND_COOLDOWN_SECONDS);
   resending = false;
 
@@ -28,8 +31,12 @@ export class CheckEmailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.email =
       this.route.snapshot.queryParamMap.get('email')?.trim() ?? '';
+    this.mode =
+      this.route.snapshot.queryParamMap.get('mode') === 'reset'
+        ? 'reset'
+        : 'verify';
     if (!this.email) {
-      this.router.navigate(['/register']);
+      this.router.navigate([this.isReset ? '/forgot-password' : '/register']);
       return;
     }
     this.startCountdown();
@@ -39,11 +46,24 @@ export class CheckEmailComponent implements OnInit, OnDestroy {
     this.stopCountdown();
   }
 
+  get isReset(): boolean {
+    return this.mode === 'reset';
+  }
+
   canResend(): boolean {
     return this.remainingSeconds() <= 0 && !this.resending;
   }
 
   decline(): void {
+    if (this.isReset) {
+      if (this.email) {
+        void this.keycloak.cancelPasswordReset(this.email).catch(() => {
+          // best-effort: navigation already happens; link expires on its own.
+        });
+      }
+      this.router.navigate(['/login']);
+      return;
+    }
     if (this.email) {
       void this.keycloak.cancelRegistration(this.email).catch(() => {
         // best-effort: navigation already happens; link expires on its own.
@@ -56,10 +76,16 @@ export class CheckEmailComponent implements OnInit, OnDestroy {
     if (!this.canResend() || !this.email) return;
     this.resending = true;
     try {
-      await this.keycloak.resendVerification(this.email);
+      if (this.isReset) {
+        await this.keycloak.requestPasswordReset(this.email);
+      } else {
+        await this.keycloak.resendVerification(this.email);
+      }
       this.notification.success(
         'Ссылка отправлена',
-        'Новая ссылка для подтверждения отправлена на ваш email.',
+        this.isReset
+          ? 'Новая ссылка для сброса пароля отправлена на ваш email.'
+          : 'Новая ссылка для подтверждения отправлена на ваш email.',
       );
       this.remainingSeconds.set(RESEND_COOLDOWN_SECONDS);
       this.startCountdown();

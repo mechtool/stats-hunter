@@ -50,12 +50,15 @@ export class ForgotPasswordComponent {
     if (this.form.invalid || this.submitting) return;
     this.submitting = true;
     try {
-      await this.keycloak.requestPasswordReset(this.form.value.email ?? '');
+      const email = this.form.value.email ?? '';
+      await this.keycloak.requestPasswordReset(email);
       this.notification.success(
         'Ссылка отправлена',
         'Ссылка для сброса пароля отправлена на ваш email.',
       );
-      this.router.navigate(['/login']);
+      this.router.navigate(['/check-email'], {
+        queryParams: { email, mode: 'reset' },
+      });
     } catch (error) {
       let message = 'Не удалось отправить ссылку. Попробуйте позже.';
       if (error instanceof HttpErrorResponse) {

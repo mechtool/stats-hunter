@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -53,12 +53,22 @@ export class ResetPasswordComponent implements OnInit {
   );
 
   token = '';
+  validating = signal(true);
+  invalid = false;
+  errorMessage = '';
   showPassword = false;
   showConfirmPassword = false;
   submitting = false;
 
   ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    if (!this.token) {
+      this.validating.set(false);
+      this.invalid = true;
+      this.errorMessage = 'В ссылке отсутствует токен сброса пароля.';
+      return;
+    }
+    void this.checkToken();
   }
 
   passwordError(): string {
@@ -107,6 +117,21 @@ export class ResetPasswordComponent implements OnInit {
       this.notification.error('Ошибка сброса пароля', message);
     } finally {
       this.submitting = false;
+    }
+  }
+
+  private async checkToken(): Promise<void> {
+    try {
+      await this.keycloak.validateResetToken(this.token);
+      this.validating.set(false);
+    } catch (error) {
+      this.validating.set(false);
+      this.invalid = true;
+      this.errorMessage =
+        error instanceof HttpErrorResponse
+          ? (error.error?.message ??
+            'Ссылка недействительна или срок её действия истёк')
+          : 'Ссылка недействительна или срок её действия истёк';
     }
   }
 }

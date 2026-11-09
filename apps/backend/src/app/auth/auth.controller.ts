@@ -46,6 +46,10 @@ interface CancelRegistrationDto {
   email: string;
 }
 
+interface ResetTokenDto {
+  token: string;
+}
+
 interface KeycloakUser {
   id: string;
   email?: string;
@@ -215,6 +219,46 @@ export class AuthController {
     const user = await this.findUserByEmail(email);
     if (user && user.enabled === false && user.emailVerified === false) {
       await this.deleteUser(user.id);
+    }
+
+    return { ok: true };
+  }
+
+  @Post('cancel-password-reset')
+  async cancelPasswordReset(
+    @Body() dto: CancelRegistrationDto,
+  ): Promise<{ ok: boolean }> {
+    const email = (dto.email ?? '').trim().toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Email обязателен');
+    }
+
+    // Revoke any pending password-reset link (idempotent).
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { email },
+    });
+
+    return { ok: true };
+  }
+
+  @Post('validate-reset-token')
+  async validateResetToken(
+    @Body() dto: ResetTokenDto,
+  ): Promise<{ ok: boolean }> {
+    const token = (dto.token ?? '').trim();
+    if (!token) {
+      throw new BadRequestException('Токен сброса обязателен');
+    }
+
+    const tokenHash = this.hashToken(token);
+    const reset = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!reset || reset.usedAt || reset.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException(
+        'Ссылка недействительна или срок её действия истёк',
+      );
     }
 
     return { ok: true };

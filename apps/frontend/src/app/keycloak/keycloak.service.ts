@@ -57,6 +57,18 @@ export class KeycloakService {
     );
   }
 
+  async cancelPasswordReset(email: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/cancel-password-reset', { email }),
+    );
+  }
+
+  async validateResetToken(token: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post('/api/auth/validate-reset-token', { token }),
+    );
+  }
+
   async resetPassword(token: string, password: string): Promise<void> {
     await firstValueFrom(
       this.http.post('/api/auth/reset-password', { token, password }),

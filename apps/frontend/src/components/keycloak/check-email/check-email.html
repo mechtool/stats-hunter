@@ -2,11 +2,18 @@
   <nz-card class="check-email-card">
     <div class="check-email-brand">
       <div class="check-email-logo">SH</div>
-      <h1>Подтвердите email</h1>
-      <p>
-        На адрес <strong>{{ email }}</strong> отправлена ссылка для
-        подтверждения почты. Перейдите по ней, чтобы войти в аккаунт.
-      </p>
+      <h1>{{ isReset ? 'Проверьте почту' : 'Подтвердите email' }}</h1>
+      @if (isReset) {
+        <p>
+          На адрес <strong>{{ email }}</strong> отправлена ссылка для сброса
+          пароля. Перейдите по ней, чтобы задать новый пароль.
+        </p>
+      } @else {
+        <p>
+          На адрес <strong>{{ email }}</strong> отправлена ссылка для
+          подтверждения почты. Перейдите по ней, чтобы войти в аккаунт.
+        </p>
+      }
     </div>
 
     <div class="check-email-actions">
